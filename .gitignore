@@ -1,0 +1,11 @@
+__pycache__/**
+.vscode/**
+env/**
+node_modules/**
+*.code-workspace
+secrets.py
+migrations/__pycache__/**
+migrations/versions/__pycache__/**
+controllers/__pycache__/**
+forms/__pycache__/**
+models/__pycache__/**

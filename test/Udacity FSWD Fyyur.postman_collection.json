@@ -1,0 +1,3131 @@
+{
+	"info": {
+		"_postman_id": "5e03e566-f80d-4b6f-8110-af494e239612",
+		"name": "Udacity FSWD Fyyur",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Create artist",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Load the HTML response to $\r",
+							"const $ = cheerio.load(pm.response.text());\r",
+							"\r",
+							"\r",
+							"pm.test(\"Status code is 200\", () => {\r",
+							"  pm.response.to.have.status(200);\r",
+							"\r",
+							"    // set the CSRF token for subsequent requests\r",
+							"    pm.collectionVariables.set(\"csrf_token\", $(\"input#csrf_token\").attr('value'));\r",
+							"    // use date provided by server\r",
+							"    pm.collectionVariables.set(\"from_date\", $(\"input#from_date\").attr('value'));\r",
+							"});\r",
+							"\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{server_ip}}/artists/create",
+					"host": [
+						"{{server_ip}}"
+					],
+					"path": [
+						"artists",
+						"create"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create artist",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Load the HTML response to $\r",
+							"const $ = cheerio.load(pm.response.text());\r",
+							"\r",
+							"pm.test(\"Status code is 200\", () => {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Shown in latest listing\", () => {\r",
+							"  \r",
+							"    const artist_href = $(\"a#latest_artist0\").attr('href');\r",
+							"    pm.expect(artist_href).to.not.be.empty;\r",
+							"    pm.expect(artist_href).to.match(/\\/artists\\/\\d+/)\r",
+							"\r",
+							"    var regEx = new RegExp(\"/artists/([0-9]+)\");\r",
+							"    var resultArray = regEx.exec(artist_href);\r",
+							"    artist_id = resultArray[1]\r",
+							"\r",
+							"    pm.collectionVariables.set(\"artist_href\", artist_href);\r",
+							"    pm.collectionVariables.set(\"artist_id\", artist_id);\r",
+							"\r",
+							"\r",
+							"    const artist_name = $(\"i#latest_artist_name0\").text().trim();\r",
+							"    pm.expect(artist_name).to.equal(pm.collectionVariables.get(\"artist_name\"));\r",
+							"});\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"pm.collectionVariables.set(\"artist_name\", \"Jim Morrison\");\r",
+							"pm.collectionVariables.set(\"artist_city\", \"Musicana\");\r",
+							"pm.collectionVariables.set(\"artist_state\", \"KY\");\r",
+							"pm.collectionVariables.set(\"artist_phone\", \"432-325-5777\");\r",
+							"pm.collectionVariables.set(\"artist_website\", \"http://www.jimbomo.com\");\r",
+							"pm.collectionVariables.set(\"artist_image_link\", \"https://unsplash.com/photos/TlxE_EtMWWY\");\r",
+							"pm.collectionVariables.set(\"artist_genres\", \"Blues\");\r",
+							"pm.collectionVariables.set(\"artist_facebook_link\", \"http://www.facebook.com/jimbomo\");\r",
+							"pm.collectionVariables.set(\"seeking_venue\", \"y\");\r",
+							"pm.collectionVariables.set(\"seeking_venue_description\", \"Just need my ukulele\");\r",
+							"pm.collectionVariables.set(\"artist_mon_from\", \"14:00\");\r",
+							"pm.collectionVariables.set(\"artist_mon_to\", \"15:00\");\r",
+							"pm.collectionVariables.set(\"artist_tue_from\", \"15:00\");\r",
+							"pm.collectionVariables.set(\"artist_tue_to\", \"16:00\");\r",
+							"pm.collectionVariables.set(\"artist_wed_from\", \"17:15\");\r",
+							"pm.collectionVariables.set(\"artist_wed_to\", \"18:45\");\r",
+							"pm.collectionVariables.set(\"artist_thu_from\", \"19:00\");\r",
+							"pm.collectionVariables.set(\"artist_thu_to\", \"22:00\");\r",
+							"pm.collectionVariables.set(\"artist_fri_from\", \"19:00\");\r",
+							"pm.collectionVariables.set(\"artist_fri_to\", \"23:00\");\r",
+							"pm.collectionVariables.set(\"artist_sat_from\", \"09:00\");\r",
+							"pm.collectionVariables.set(\"artist_sat_to\", \"17:00\");\r",
+							"pm.collectionVariables.set(\"artist_sun_from\", \"12:00\");\r",
+							"pm.collectionVariables.set(\"artist_sun_to\", \"00:00\");\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "csrf_token",
+							"value": "{{csrf_token}}",
+							"type": "text"
+						},
+						{
+							"key": "name",
+							"value": "{{artist_name}}",
+							"type": "text"
+						},
+						{
+							"key": "city",
+							"value": "{{artist_city}}",
+							"type": "text"
+						},
+						{
+							"key": "state",
+							"value": "{{artist_state}}",
+							"type": "text"
+						},
+						{
+							"key": "phone",
+							"value": "{{artist_phone}}",
+							"type": "text"
+						},
+						{
+							"key": "genres",
+							"value": "{{artist_genres}}",
+							"type": "text"
+						},
+						{
+							"key": "facebook_link",
+							"value": "{{artist_facebook_link}}",
+							"type": "text"
+						},
+						{
+							"key": "website",
+							"value": "{{artist_website}}",
+							"type": "text"
+						},
+						{
+							"key": "image_link",
+							"value": "{{artist_image_link}}",
+							"type": "text"
+						},
+						{
+							"key": "seeking_venue",
+							"value": "{{seeking_venue}}",
+							"type": "text"
+						},
+						{
+							"key": "seeking_description",
+							"value": "{{seeking_venue_description}}",
+							"type": "text"
+						},
+						{
+							"key": "from_date",
+							"value": "{{from_date}}",
+							"type": "text"
+						},
+						{
+							"key": "mon_from",
+							"value": "{{artist_mon_from}}",
+							"type": "text"
+						},
+						{
+							"key": "mon_to",
+							"value": "{{artist_mon_to}}",
+							"type": "text"
+						},
+						{
+							"key": "tue_from",
+							"value": "{{artist_tue_from}}",
+							"type": "text"
+						},
+						{
+							"key": "tue_to",
+							"value": "{{artist_tue_to}}",
+							"type": "text"
+						},
+						{
+							"key": "wed_from",
+							"value": "{{artist_wed_from}}",
+							"type": "text"
+						},
+						{
+							"key": "wed_to",
+							"value": "{{artist_wed_to}}",
+							"type": "text"
+						},
+						{
+							"key": "thu_from",
+							"value": "{{artist_thu_from}}",
+							"type": "text"
+						},
+						{
+							"key": "thu_to",
+							"value": "{{artist_thu_to}}",
+							"type": "text"
+						},
+						{
+							"key": "fri_from",
+							"value": "{{artist_fri_from}}",
+							"type": "text"
+						},
+						{
+							"key": "fri_to",
+							"value": "{{artist_fri_to}}",
+							"type": "text"
+						},
+						{
+							"key": "sat_from",
+							"value": "{{artist_sat_from}}",
+							"type": "text"
+						},
+						{
+							"key": "sat_to",
+							"value": "{{artist_sat_to}}",
+							"type": "text"
+						},
+						{
+							"key": "sun_from",
+							"value": "{{artist_sun_from}}",
+							"type": "text"
+						},
+						{
+							"key": "sun_to",
+							"value": "{{artist_sun_to}}",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{server_ip}}/artists/create",
+					"host": [
+						"{{server_ip}}"
+					],
+					"path": [
+						"artists",
+						"create"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Edit artist",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Load the HTML response to $\r",
+							"const $ = cheerio.load(pm.response.text());\r",
+							"\r",
+							"pm.test(\"Status code is 200\", () => {\r",
+							"    pm.response.to.have.status(200);\r",
+							"\r",
+							"    // set the CSRF token for subsequent requests\r",
+							"    pm.collectionVariables.set(\"csrf_token\", $(\"input#csrf_token\").attr('value'));\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Listing is correct\", () => {\r",
+							"  \r",
+							"    pm.expect($(\"input#name\").attr(\"value\")).to.contain(pm.collectionVariables.get(\"artist_name\"));\r",
+							"    pm.expect($(\"input#city\").attr(\"value\")).to.contain(pm.collectionVariables.get(\"artist_city\"));\r",
+							"    const state = pm.collectionVariables.get(\"artist_state\");\r",
+							"    $(\"select#state\").find('option').each((i,op) => {\r",
+							"        var state_option = $(op).text()\r",
+							"        if (state_option == state) {\r",
+							"            pm.expect($(op).attr(\"selected\"), \"state '\"+state+\"' does not have selected attr\").exist;\r",
+							"        } else {\r",
+							"            pm.expect($(op).attr(\"selected\"), \"state '\"+state_option+\"' has selected attr\").does.not.exist;\r",
+							"        }\r",
+							"    })\r",
+							"    const genres = pm.collectionVariables.get(\"artist_genres\");\r",
+							"    $(\"select#genres\").find('option').each((i,op) => {\r",
+							"        var genres_option = $(op).text()\r",
+							"        if (genres_option == genres) {\r",
+							"            pm.expect($(op).attr(\"selected\"), \"genres '\"+genres+\"' does not have selected attr\").exist;\r",
+							"        } else {\r",
+							"            pm.expect($(op).attr(\"selected\"), \"genres '\"+genres_option+\"' has selected attr\").does.not.exist;\r",
+							"        }\r",
+							"    })\r",
+							"\r",
+							"    pm.expect($(\"input#phone\").attr(\"value\")).to.contain(pm.collectionVariables.get(\"artist_phone\"));\r",
+							"    pm.expect($(\"input#website\").attr(\"value\")).to.contain(pm.collectionVariables.get(\"artist_website\"));\r",
+							"    pm.expect($(\"input#facebook_link\").attr(\"value\")).to.contain(pm.collectionVariables.get(\"artist_facebook_link\"));\r",
+							"    pm.expect($(\"input#image_link\").attr(\"value\")).to.contain(pm.collectionVariables.get(\"artist_image_link\"));\r",
+							"    var seeking = pm.collectionVariables.get(\"seeking_venue\")\r",
+							"    if (seeking == 'y') {\r",
+							"        pm.expect($(\"input#seeking_venue\").attr(\"value\")).to.equal(\"True\");\r",
+							"        pm.expect($(\"textarea#seeking_description\").text()).to.contain(pm.collectionVariables.get(\"seeking_venue_description\"));\r",
+							"    } else {\r",
+							"        pm.expect($(\"input#seeking_venue\").attr(\"value\")).to.equal(\"False\");\r",
+							"    }\r",
+							"    const availability_list = $(\"div#availability_list\").text();\r",
+							"    const avail = [{\"dow\": \"Monday\", \"a_from\": \"mon_from\", \"a_to\": \"mon_to\"}, \r",
+							"                    {\"dow\": \"Tuesday\", \"a_from\": \"tue_from\", \"a_to\": \"tue_to\"}, \r",
+							"                    {\"dow\": \"Wednesday\", \"a_from\": \"wed_from\", \"a_to\": \"wed_to\"}, \r",
+							"                    {\"dow\": \"Thursday\", \"a_from\": \"thu_from\", \"a_to\": \"thu_to\"}, \r",
+							"                    {\"dow\": \"Friday\", \"a_from\": \"fri_from\", \"a_to\": \"fri_to\"}, \r",
+							"                    {\"dow\": \"Saturday\", \"a_from\": \"sat_from\", \"a_to\": \"sat_to\"}, \r",
+							"                    {\"dow\": \"Sunday\", \"a_from\": \"sun_from\", \"a_to\": \"sun_to\"}];\r",
+							"    for (var index = 0; index < avail.length; ++index) {\r",
+							"        // variables are called \"artist_mon_from\" etc.\r",
+							"        var from = pm.collectionVariables.get(\"artist_\" + avail[index][\"a_from\"]);\r",
+							"        var to = pm.collectionVariables.get(\"artist_\" + avail[index][\"a_to\"]);\r",
+							"        var dow = avail[index][\"dow\"];\r",
+							"\r",
+							"        pm.expect(availability_list).contains(dow);\r",
+							"\r",
+							"        if (from != '') {\r",
+							"            // inputs are called \"mon_from\" etc.\r",
+							"            pm.expect($(\"input#\" + avail[index][\"a_from\"]).attr(\"value\")).contains(from);\r",
+							"        }\r",
+							"        if (to != '') {\r",
+							"            // inputs are called \"mon_from\" etc.\r",
+							"            pm.expect($(\"input#\" + avail[index][\"a_to\"]).attr(\"value\")).contains(to);\r",
+							"        }\r",
+							"    }\r",
+							"\r",
+							"    \r",
+							"\r",
+							"});\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{server_ip}}{{artist_href}}/edit",
+					"host": [
+						"{{server_ip}}{{artist_href}}"
+					],
+					"path": [
+						"edit"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Edit artist",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Load the HTML response to $\r",
+							"const $ = cheerio.load(pm.response.text());\r",
+							"\r",
+							"pm.test(\"Status code is 200\", () => {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Listing is correct\", () => {\r",
+							"  \r",
+							"    pm.expect($(\"h1#artist_name\").text()).to.contain(pm.collectionVariables.get(\"artist_name\"));\r",
+							"    pm.expect($(\"p#artist_id\").text()).to.contain(pm.collectionVariables.get(\"artist_id\"));\r",
+							"    pm.expect($(\"div#genres\").text()).to.contain(pm.collectionVariables.get(\"artist_genres\"));\r",
+							"    pm.expect($(\"p#city_state\").text()).to.contain(pm.collectionVariables.get(\"artist_city\"));\r",
+							"    pm.expect($(\"p#city_state\").text()).to.contain(pm.collectionVariables.get(\"artist_state\"));\r",
+							"    pm.expect($(\"p#phone\").text()).to.contain(pm.collectionVariables.get(\"artist_phone\"));\r",
+							"    pm.expect($(\"img#artist_img\").attr(\"src\")).equals(pm.collectionVariables.get(\"artist_image_link\"));\r",
+							"    pm.expect($(\"p#website\").text()).to.contain(pm.collectionVariables.get(\"artist_website\"));\r",
+							"    pm.expect($(\"p#facebook\").text()).to.contain(pm.collectionVariables.get(\"artist_facebook_link\"));\r",
+							"    var seeking = pm.collectionVariables.get(\"seeking_venue\")\r",
+							"    if (seeking == 'y') {\r",
+							"        pm.expect($(\"div#seeking\").text()).to.contain(pm.collectionVariables.get(\"seeking_venue_description\"));\r",
+							"    } else {\r",
+							"        pm.expect($(\"div#not-seeking\").text(), \"Not 'seeking' currently unsupported. \"\r",
+							"                                                    +\"Need separate request as currently can't modify request body programmatically.\").to.not.be.empty;\r",
+							"    }\r",
+							"    const availability_list = $(\"div#availability_list\").text();\r",
+							"    const avail = [{\"dow\": \"Monday\", \"a_from\": \"mon_from\", \"a_to\": \"mon_to\"}, \r",
+							"                    {\"dow\": \"Tuesday\", \"a_from\": \"tue_from\", \"a_to\": \"tue_to\"}, \r",
+							"                    {\"dow\": \"Wednesday\", \"a_from\": \"wed_from\", \"a_to\": \"wed_to\"}, \r",
+							"                    {\"dow\": \"Thursday\", \"a_from\": \"thu_from\", \"a_to\": \"thu_to\"}, \r",
+							"                    {\"dow\": \"Friday\", \"a_from\": \"fri_from\", \"a_to\": \"fri_to\"}, \r",
+							"                    {\"dow\": \"Saturday\", \"a_from\": \"sat_from\", \"a_to\": \"sat_to\"}, \r",
+							"                    {\"dow\": \"Sunday\", \"a_from\": \"sun_from\", \"a_to\": \"sun_to\"}];\r",
+							"    for (var index = 0; index < avail.length; ++index) {\r",
+							"        // variables are called \"artist_mon_from\" etc.\r",
+							"        var from = pm.collectionVariables.get(\"artist_\" + avail[index][\"a_from\"]);\r",
+							"        var to = pm.collectionVariables.get(\"artist_\" + avail[index][\"a_to\"]);\r",
+							"        var dow = avail[index][\"dow\"];\r",
+							"\r",
+							"        if (from != '' && to != '') {\r",
+							"            pm.expect(availability_list).contains(dow);\r",
+							"\r",
+							"            var text = $(\"span#avail\"+dow).text();\r",
+							"            pm.expect(text).contains(dow);\r",
+							"            pm.expect(text).contains(from);\r",
+							"            pm.expect(text).contains(to);\r",
+							"        }\r",
+							"    }\r",
+							"});\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"pm.collectionVariables.set(\"artist_name\", \"James Morrison\");\r",
+							"pm.collectionVariables.set(\"artist_city\", \"Tune City\");\r",
+							"pm.collectionVariables.set(\"artist_state\", \"TN\");\r",
+							"pm.collectionVariables.set(\"artist_phone\", \"432-325-5776\");\r",
+							"pm.collectionVariables.set(\"artist_website\", \"http://www.jamesmorrison.com\");\r",
+							"pm.collectionVariables.set(\"artist_image_link\", \"https://unsplash.com/photos/R11HU86yT-Y\");\r",
+							"pm.collectionVariables.set(\"artist_genres\", \"Folk\");\r",
+							"pm.collectionVariables.set(\"artist_facebook_link\", \"http://www.facebook.com/jamesmorrison\");\r",
+							"// TODO looks like can't modify the request body form programmatically yet; leave seeking_venue 'y'\r",
+							"pm.collectionVariables.set(\"seeking_venue\", \"y\");\r",
+							"pm.collectionVariables.set(\"seeking_venue_description\", \"Just need my ukulele and banjo\");\r",
+							"pm.collectionVariables.set(\"artist_mon_from\", \"14:01\");\r",
+							"pm.collectionVariables.set(\"artist_mon_to\", \"15:01\");\r",
+							"pm.collectionVariables.set(\"artist_tue_from\", \"15:01\");\r",
+							"pm.collectionVariables.set(\"artist_tue_to\", \"16:01\");\r",
+							"pm.collectionVariables.set(\"artist_wed_from\", \"17:16\");\r",
+							"pm.collectionVariables.set(\"artist_wed_to\", \"18:46\");\r",
+							"pm.collectionVariables.set(\"artist_thu_from\", \"19:01\");\r",
+							"pm.collectionVariables.set(\"artist_thu_to\", \"22:01\");\r",
+							"pm.collectionVariables.set(\"artist_fri_from\", \"19:01\");\r",
+							"pm.collectionVariables.set(\"artist_fri_to\", \"23:01\");\r",
+							"pm.collectionVariables.set(\"artist_sat_from\", \"09:01\");\r",
+							"pm.collectionVariables.set(\"artist_sat_to\", \"17:01\");\r",
+							"pm.collectionVariables.set(\"artist_sun_from\", \"12:01\");\r",
+							"pm.collectionVariables.set(\"artist_sun_to\", \"23:59\");\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "csrf_token",
+							"value": "{{csrf_token}}",
+							"type": "text"
+						},
+						{
+							"key": "name",
+							"value": "{{artist_name}}",
+							"type": "text"
+						},
+						{
+							"key": "city",
+							"value": "{{artist_city}}",
+							"type": "text"
+						},
+						{
+							"key": "state",
+							"value": "{{artist_state}}",
+							"type": "text"
+						},
+						{
+							"key": "phone",
+							"value": "{{artist_phone}}",
+							"type": "text"
+						},
+						{
+							"key": "genres",
+							"value": "{{artist_genres}}",
+							"type": "text"
+						},
+						{
+							"key": "facebook_link",
+							"value": "{{artist_facebook_link}}",
+							"type": "text"
+						},
+						{
+							"key": "website",
+							"value": "{{artist_website}}",
+							"type": "text"
+						},
+						{
+							"key": "image_link",
+							"value": "{{artist_image_link}}",
+							"type": "text"
+						},
+						{
+							"key": "seeking_venue",
+							"value": "{{seeking_venue}}",
+							"type": "text"
+						},
+						{
+							"key": "seeking_description",
+							"value": "{{seeking_venue_description}}",
+							"type": "text"
+						},
+						{
+							"key": "from_date",
+							"value": "{{from_date}}",
+							"type": "text"
+						},
+						{
+							"key": "mon_from",
+							"value": "{{artist_mon_from}}",
+							"type": "text"
+						},
+						{
+							"key": "mon_to",
+							"value": "{{artist_mon_to}}",
+							"type": "text"
+						},
+						{
+							"key": "tue_from",
+							"value": "{{artist_tue_from}}",
+							"type": "text"
+						},
+						{
+							"key": "tue_to",
+							"value": "{{artist_tue_to}}",
+							"type": "text"
+						},
+						{
+							"key": "wed_from",
+							"value": "{{artist_wed_from}}",
+							"type": "text"
+						},
+						{
+							"key": "wed_to",
+							"value": "{{artist_wed_to}}",
+							"type": "text"
+						},
+						{
+							"key": "thu_from",
+							"value": "{{artist_thu_from}}",
+							"type": "text"
+						},
+						{
+							"key": "thu_to",
+							"value": "{{artist_thu_to}}",
+							"type": "text"
+						},
+						{
+							"key": "fri_from",
+							"value": "{{artist_fri_from}}",
+							"type": "text"
+						},
+						{
+							"key": "fri_to",
+							"value": "{{artist_fri_to}}",
+							"type": "text"
+						},
+						{
+							"key": "sat_from",
+							"value": "{{artist_sat_from}}",
+							"type": "text"
+						},
+						{
+							"key": "sat_to",
+							"value": "{{artist_sat_to}}",
+							"type": "text"
+						},
+						{
+							"key": "sun_from",
+							"value": "{{artist_sun_from}}",
+							"type": "text"
+						},
+						{
+							"key": "sun_to",
+							"value": "{{artist_sun_to}}",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{server_ip}}{{artist_href}}/edit",
+					"host": [
+						"{{server_ip}}{{artist_href}}"
+					],
+					"path": [
+						"edit"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get artist",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Load the HTML response to $\r",
+							"const $ = cheerio.load(pm.response.text());\r",
+							"\r",
+							"pm.test(\"Status code is 200\", () => {\r",
+							"    pm.response.to.have.status(200);\r",
+							"\r",
+							"    // set the CSRF token for subsequent requests\r",
+							"    pm.collectionVariables.set(\"csrf_token\", $(\"input#csrf_token\").attr('value'));\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Listing is correct\", () => {\r",
+							"  \r",
+							"    pm.expect($(\"h1#artist_name\").text()).to.contain(pm.collectionVariables.get(\"artist_name\"));\r",
+							"    pm.expect($(\"p#artist_id\").text()).to.contain(pm.collectionVariables.get(\"artist_id\"));\r",
+							"    pm.expect($(\"div#genres\").text()).to.contain(pm.collectionVariables.get(\"artist_genres\"));\r",
+							"    pm.expect($(\"p#city_state\").text()).to.contain(pm.collectionVariables.get(\"artist_city\"));\r",
+							"    pm.expect($(\"p#city_state\").text()).to.contain(pm.collectionVariables.get(\"artist_state\"));\r",
+							"    pm.expect($(\"p#phone\").text()).to.contain(pm.collectionVariables.get(\"artist_phone\"));\r",
+							"    pm.expect($(\"img#artist_img\").attr(\"src\")).equals(pm.collectionVariables.get(\"artist_image_link\"));\r",
+							"    pm.expect($(\"p#website\").text()).to.contain(pm.collectionVariables.get(\"artist_website\"));\r",
+							"    pm.expect($(\"p#facebook\").text()).to.contain(pm.collectionVariables.get(\"artist_facebook_link\"));\r",
+							"    var seeking = pm.collectionVariables.get(\"seeking_venue\")\r",
+							"    if (seeking == 'y') {\r",
+							"        pm.expect($(\"div#seeking\").text()).to.contain(pm.collectionVariables.get(\"seeking_venue_description\"));\r",
+							"    } else {\r",
+							"        pm.expect($(\"div#not-seeking\").text(), \"Not 'seeking' currently unsupported. \"\r",
+							"                                                    +\"Need separate request as currently can't modify request body programmatically.\").to.not.be.empty;\r",
+							"    }\r",
+							"    const availability_list = $(\"div#availability_list\").text();\r",
+							"    const avail = [{\"dow\": \"Monday\", \"a_from\": \"mon_from\", \"a_to\": \"mon_to\"}, \r",
+							"                    {\"dow\": \"Tuesday\", \"a_from\": \"tue_from\", \"a_to\": \"tue_to\"}, \r",
+							"                    {\"dow\": \"Wednesday\", \"a_from\": \"wed_from\", \"a_to\": \"wed_to\"}, \r",
+							"                    {\"dow\": \"Thursday\", \"a_from\": \"thu_from\", \"a_to\": \"thu_to\"}, \r",
+							"                    {\"dow\": \"Friday\", \"a_from\": \"fri_from\", \"a_to\": \"fri_to\"}, \r",
+							"                    {\"dow\": \"Saturday\", \"a_from\": \"sat_from\", \"a_to\": \"sat_to\"}, \r",
+							"                    {\"dow\": \"Sunday\", \"a_from\": \"sun_from\", \"a_to\": \"sun_to\"}];\r",
+							"    for (var index = 0; index < avail.length; ++index) {\r",
+							"        // variables are called \"artist_mon_from\" etc.\r",
+							"        var from = pm.collectionVariables.get(\"artist_\" + avail[index][\"a_from\"]);\r",
+							"        var to = pm.collectionVariables.get(\"artist_\" + avail[index][\"a_to\"]);\r",
+							"        var dow = avail[index][\"dow\"];\r",
+							"\r",
+							"        if (from != '' && to != '') {\r",
+							"            pm.expect(availability_list).contains(dow);\r",
+							"\r",
+							"            var text = $(\"span#avail\"+dow).text();\r",
+							"            pm.expect(text).contains(dow);\r",
+							"            pm.expect(text).contains(from);\r",
+							"            pm.expect(text).contains(to);\r",
+							"        }\r",
+							"    }\r",
+							"});\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{server_ip}}{{artist_href}}",
+					"host": [
+						"{{server_ip}}{{artist_href}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get artist availability",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Load the HTML response to $\r",
+							"const $ = cheerio.load(pm.response.text());\r",
+							"\r",
+							"pm.test(\"Status code is 200\", () => {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Availability is correct\", () => {\r",
+							"  \r",
+							"    const jsonData = pm.response.json();\r",
+							"\r",
+							"    const avail = [{\"dow\": \"Monday\", \"a_from\": \"mon_from\", \"a_to\": \"mon_to\"}, \r",
+							"                    {\"dow\": \"Tuesday\", \"a_from\": \"tue_from\", \"a_to\": \"tue_to\"}, \r",
+							"                    {\"dow\": \"Wednesday\", \"a_from\": \"wed_from\", \"a_to\": \"wed_to\"}, \r",
+							"                    {\"dow\": \"Thursday\", \"a_from\": \"thu_from\", \"a_to\": \"thu_to\"}, \r",
+							"                    {\"dow\": \"Friday\", \"a_from\": \"fri_from\", \"a_to\": \"fri_to\"}, \r",
+							"                    {\"dow\": \"Saturday\", \"a_from\": \"sat_from\", \"a_to\": \"sat_to\"}, \r",
+							"                    {\"dow\": \"Sunday\", \"a_from\": \"sun_from\", \"a_to\": \"sun_to\"}];\r",
+							"    var valid = 0;\r",
+							"    for (var index = 0; index < avail.length; ++index) {\r",
+							"        // variables are called \"artist_mon_from\" etc.\r",
+							"        var from = pm.collectionVariables.get(\"artist_\" + avail[index][\"a_from\"]);\r",
+							"        var to = pm.collectionVariables.get(\"artist_\" + avail[index][\"a_to\"]);\r",
+							"        var dow = avail[index][\"dow\"];\r",
+							"\r",
+							"        for (var idx = 0; idx < jsonData.availability.length; ++idx) {\r",
+							"            var entry = jsonData.availability[idx];\r",
+							"            console.log(entry);\r",
+							"            if (entry.includes(dow)) {\r",
+							"                if (entry.includes(from) && entry.includes(to)) {\r",
+							"                    ++valid;\r",
+							"                }\r",
+							"            }\r",
+							"        }\r",
+							"    }\r",
+							"    pm.expect(jsonData.availability.length).to.equal(valid);\r",
+							"});\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{server_ip}}{{artist_href}}/availability",
+					"host": [
+						"{{server_ip}}{{artist_href}}"
+					],
+					"path": [
+						"availability"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete artist",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Load the HTML response to $\r",
+							"const $ = cheerio.load(pm.response.text());\r",
+							"\r",
+							"pm.test(\"Status code is 200\", () => {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {}
+			},
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "csrf_token",
+							"value": "{{csrf_token}}",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{server_ip}}{{artist_href}}",
+					"host": [
+						"{{server_ip}}{{artist_href}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete non-existent artist",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Load the HTML response to $\r",
+							"const $ = cheerio.load(pm.response.text());\r",
+							"\r",
+							"pm.test(\"Status code is 404\", () => {\r",
+							"    pm.response.to.have.status(404);\r",
+							"});\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {}
+			},
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "csrf_token",
+							"value": "{{csrf_token}}",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{server_ip}}{{artist_href}}",
+					"host": [
+						"{{server_ip}}{{artist_href}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create venue",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Load the HTML response to $\r",
+							"const $ = cheerio.load(pm.response.text());\r",
+							"\r",
+							"\r",
+							"pm.test(\"Status code is 200\", () => {\r",
+							"  pm.response.to.have.status(200);\r",
+							"\r",
+							"    // set the CSRF token for subsequent requests\r",
+							"    pm.collectionVariables.set(\"csrf_token\", $(\"input#csrf_token\").attr('value'));\r",
+							"});\r",
+							"\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{server_ip}}/venues/create",
+					"host": [
+						"{{server_ip}}"
+					],
+					"path": [
+						"venues",
+						"create"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create venue",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Load the HTML response to $\r",
+							"const $ = cheerio.load(pm.response.text());\r",
+							"\r",
+							"pm.test(\"Status code is 200\", () => {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Shown in latest listing\", () => {\r",
+							"  \r",
+							"    const venue_href = $(\"a#latest_venue0\").attr('href');\r",
+							"    pm.expect(venue_href).to.not.be.empty;\r",
+							"    pm.expect(venue_href).to.match(/\\/venues\\/\\d+/)\r",
+							"\r",
+							"    var regEx = new RegExp(\"/venues/([0-9]+)\");\r",
+							"    var resultArray = regEx.exec(venue_href);\r",
+							"    venue_id = resultArray[1]\r",
+							"\r",
+							"    pm.collectionVariables.set(\"venue_href\", venue_href);\r",
+							"    pm.collectionVariables.set(\"venue_id\", venue_id);\r",
+							"\r",
+							"\r",
+							"    const venue_name = $(\"i#latest_venue_name0\").text().trim();\r",
+							"    pm.expect(venue_name).to.equal(pm.collectionVariables.get(\"venue_name\"));\r",
+							"});\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"pm.collectionVariables.set(\"venue_name\", \"The Jam Shack\");\r",
+							"pm.collectionVariables.set(\"venue_city\", \"Where Ever\");\r",
+							"pm.collectionVariables.set(\"venue_state\", \"NY\");\r",
+							"pm.collectionVariables.set(\"venue_address\", \"1 Music Blvd\");\r",
+							"pm.collectionVariables.set(\"venue_phone\", \"432-954-5771\");\r",
+							"pm.collectionVariables.set(\"venue_website\", \"http://www.jamshack.com\");\r",
+							"pm.collectionVariables.set(\"venue_image_link\", \"https://unsplash.com/photos/Xmy1BIxtOmY\");\r",
+							"pm.collectionVariables.set(\"venue_genres\", \"Rock n Roll\");\r",
+							"pm.collectionVariables.set(\"venue_facebook_link\", \"http://www.facebook.com/jamshack\");\r",
+							"pm.collectionVariables.set(\"seeking_talent\", \"y\");\r",
+							"pm.collectionVariables.set(\"seeking_talent_description\", \"Chopsticks experts required\");\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "csrf_token",
+							"value": "{{csrf_token}}",
+							"type": "text"
+						},
+						{
+							"key": "name",
+							"value": "{{venue_name}}",
+							"type": "text"
+						},
+						{
+							"key": "city",
+							"value": "{{venue_city}}",
+							"type": "text"
+						},
+						{
+							"key": "state",
+							"value": "{{venue_state}}",
+							"type": "text"
+						},
+						{
+							"key": "address",
+							"value": "{{venue_address}}",
+							"type": "text"
+						},
+						{
+							"key": "phone",
+							"value": "{{venue_phone}}",
+							"type": "text"
+						},
+						{
+							"key": "genres",
+							"value": "{{venue_genres}}",
+							"type": "text"
+						},
+						{
+							"key": "facebook_link",
+							"value": "{{venue_facebook_link}}",
+							"type": "text"
+						},
+						{
+							"key": "website",
+							"value": "{{venue_website}}",
+							"type": "text"
+						},
+						{
+							"key": "image_link",
+							"value": "{{venue_image_link}}",
+							"type": "text"
+						},
+						{
+							"key": "seeking_talent",
+							"value": "{{seeking_talent}}",
+							"type": "text"
+						},
+						{
+							"key": "seeking_description",
+							"value": "{{seeking_talent_description}}",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{server_ip}}/venues/create",
+					"host": [
+						"{{server_ip}}"
+					],
+					"path": [
+						"venues",
+						"create"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Edit venue",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Load the HTML response to $\r",
+							"const $ = cheerio.load(pm.response.text());\r",
+							"\r",
+							"pm.test(\"Status code is 200\", () => {\r",
+							"    pm.response.to.have.status(200);\r",
+							"\r",
+							"    // set the CSRF token for subsequent requests\r",
+							"    pm.collectionVariables.set(\"csrf_token\", $(\"input#csrf_token\").attr('value'));\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Listing is correct\", () => {\r",
+							"  \r",
+							"    pm.expect($(\"input#name\").attr(\"value\")).to.equals(pm.collectionVariables.get(\"venue_name\"));\r",
+							"    pm.expect($(\"input#city\").attr(\"value\")).to.equals(pm.collectionVariables.get(\"venue_city\"));\r",
+							"    pm.expect($(\"input#address\").attr(\"value\")).to.equals(pm.collectionVariables.get(\"venue_address\"));\r",
+							"    const state = pm.collectionVariables.get(\"venue_state\");\r",
+							"    $(\"select#state\").find('option').each((i,op) => {\r",
+							"        if ($(op).text() == state) {\r",
+							"            pm.expect($(op).attr(\"selected\")).exist;\r",
+							"        } else {\r",
+							"            pm.expect($(op).attr(\"selected\")).does.not.exist;\r",
+							"        }\r",
+							"    })\r",
+							"    const genres = pm.collectionVariables.get(\"venue_genres\");\r",
+							"    $(\"select#genres\").find('option').each((i,op) => {\r",
+							"        if ($(op).text() == genres) {\r",
+							"            pm.expect($(op).attr(\"selected\")).exist;\r",
+							"        } else {\r",
+							"            pm.expect($(op).attr(\"selected\")).does.not.exist;\r",
+							"        }\r",
+							"    })\r",
+							"\r",
+							"    pm.expect($(\"input#phone\").attr(\"value\")).to.equals(pm.collectionVariables.get(\"venue_phone\"));\r",
+							"    pm.expect($(\"input#website\").attr(\"value\")).to.equals(pm.collectionVariables.get(\"venue_website\"));\r",
+							"    pm.expect($(\"input#facebook_link\").attr(\"value\")).to.equals(pm.collectionVariables.get(\"venue_facebook_link\"));\r",
+							"    pm.expect($(\"input#image_link\").attr(\"value\")).to.equals(pm.collectionVariables.get(\"venue_image_link\"));\r",
+							"    var seeking = pm.collectionVariables.get(\"seeking_venue\")\r",
+							"    if (seeking == 'y') {\r",
+							"        pm.expect($(\"input#seeking_talent\").attr(\"value\")).to.equal(\"True\");\r",
+							"        pm.expect($(\"textarea#seeking_description\").text()).to.contains(pm.collectionVariables.get(\"seeking_talent_description\"));\r",
+							"    } else {\r",
+							"        pm.expect($(\"input#seeking_talent\").attr(\"value\")).to.equal(\"False\");\r",
+							"    }\r",
+							"});\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{server_ip}}{{venue_href}}/edit",
+					"host": [
+						"{{server_ip}}{{venue_href}}"
+					],
+					"path": [
+						"edit"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Edit venue",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Load the HTML response to $\r",
+							"const $ = cheerio.load(pm.response.text());\r",
+							"\r",
+							"pm.test(\"Status code is 200\", () => {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Listing is correct\", () => {\r",
+							"  \r",
+							"    pm.expect($(\"h1#venue_name\").text()).to.contain(pm.collectionVariables.get(\"venue_name\"));\r",
+							"    pm.expect($(\"p#venue_id\").text()).to.contain(pm.collectionVariables.get(\"venue_id\"));\r",
+							"    pm.expect($(\"div#genres\").text()).to.contain(pm.collectionVariables.get(\"venue_genres\"));\r",
+							"    pm.expect($(\"p#city_state\").text()).to.contain(pm.collectionVariables.get(\"venue_city\"));\r",
+							"    pm.expect($(\"p#city_state\").text()).to.contain(pm.collectionVariables.get(\"venue_state\"));\r",
+							"    pm.expect($(\"p#address\").text()).to.contain(pm.collectionVariables.get(\"venue_address\"));\r",
+							"    pm.expect($(\"p#phone\").text()).to.contain(pm.collectionVariables.get(\"venue_phone\"));\r",
+							"    pm.expect($(\"img#venue_img\").attr(\"src\")).equals(pm.collectionVariables.get(\"venue_image_link\"));\r",
+							"    pm.expect($(\"p#website\").text()).to.contain(pm.collectionVariables.get(\"venue_website\"));\r",
+							"    pm.expect($(\"p#facebook\").text()).to.contain(pm.collectionVariables.get(\"venue_facebook_link\"));\r",
+							"    var seeking = pm.collectionVariables.get(\"seeking_venue\")\r",
+							"    if (seeking == 'y') {\r",
+							"        pm.expect($(\"div#seeking\").text()).to.contain(pm.collectionVariables.get(\"seeking_talent_description\"));\r",
+							"    } else {\r",
+							"        pm.expect($(\"div#not-seeking\").text(), \"Not 'seeking' currently unsupported. \"\r",
+							"                                                    +\"Need separate request as currently can't modify request body programmatically.\").to.not.be.empty;\r",
+							"    }\r",
+							"});\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"pm.collectionVariables.set(\"venue_name\", \"The Jam & Butter Shack\");\r",
+							"pm.collectionVariables.set(\"venue_city\", \"Where Was\");\r",
+							"pm.collectionVariables.set(\"venue_state\", \"AZ\");\r",
+							"pm.collectionVariables.set(\"venue_address\", \"99 Music Road\");\r",
+							"pm.collectionVariables.set(\"venue_phone\", \"432-854-9871\");\r",
+							"pm.collectionVariables.set(\"venue_website\", \"http://www.jambuttershack.com\");\r",
+							"pm.collectionVariables.set(\"venue_image_link\", \"https://unsplash.com/photos/MXoncUFOy9c\");\r",
+							"pm.collectionVariables.set(\"venue_genres\", \"Musical Theatre\");\r",
+							"pm.collectionVariables.set(\"venue_facebook_link\", \"http://www.facebook.com/jambuttershack\");\r",
+							"// TODO looks like can't modify the request body form programmatically yet; leave seeking_talent 'y'\r",
+							"pm.collectionVariables.set(\"seeking_talent\", \"y\");\r",
+							"pm.collectionVariables.set(\"seeking_talent_description\", \"Must sing and dance\");\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "csrf_token",
+							"value": "{{csrf_token}}",
+							"type": "text"
+						},
+						{
+							"key": "name",
+							"value": "{{venue_name}}",
+							"type": "text"
+						},
+						{
+							"key": "city",
+							"value": "{{venue_city}}",
+							"type": "text"
+						},
+						{
+							"key": "state",
+							"value": "{{venue_state}}",
+							"type": "text"
+						},
+						{
+							"key": "address",
+							"value": "{{venue_address}}",
+							"type": "text"
+						},
+						{
+							"key": "phone",
+							"value": "{{venue_phone}}",
+							"type": "text"
+						},
+						{
+							"key": "genres",
+							"value": "{{venue_genres}}",
+							"type": "text"
+						},
+						{
+							"key": "facebook_link",
+							"value": "{{venue_facebook_link}}",
+							"type": "text"
+						},
+						{
+							"key": "website",
+							"value": "{{venue_website}}",
+							"type": "text"
+						},
+						{
+							"key": "image_link",
+							"value": "{{venue_image_link}}",
+							"type": "text"
+						},
+						{
+							"key": "seeking_talent",
+							"value": "{{seeking_talent}}",
+							"type": "text"
+						},
+						{
+							"key": "seeking_description",
+							"value": "{{seeking_talent_description}}",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{server_ip}}{{venue_href}}/edit",
+					"host": [
+						"{{server_ip}}{{venue_href}}"
+					],
+					"path": [
+						"edit"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get venue",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Load the HTML response to $\r",
+							"const $ = cheerio.load(pm.response.text());\r",
+							"\r",
+							"pm.test(\"Status code is 200\", () => {\r",
+							"    pm.response.to.have.status(200);\r",
+							"    \r",
+							"    // set the CSRF token for subsequent requests\r",
+							"    pm.collectionVariables.set(\"csrf_token\", $(\"input#csrf_token\").attr('value'));\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Listing is correct\", () => {\r",
+							"  \r",
+							"    pm.expect($(\"h1#venue_name\").text()).to.contain(pm.collectionVariables.get(\"venue_name\"));\r",
+							"    pm.expect($(\"p#venue_id\").text()).to.contain(pm.collectionVariables.get(\"venue_id\"));\r",
+							"    pm.expect($(\"div#genres\").text()).to.contain(pm.collectionVariables.get(\"venue_genres\"));\r",
+							"    pm.expect($(\"p#city_state\").text()).to.contain(pm.collectionVariables.get(\"venue_city\"));\r",
+							"    pm.expect($(\"p#city_state\").text()).to.contain(pm.collectionVariables.get(\"venue_state\"));\r",
+							"    pm.expect($(\"p#address\").text()).to.contain(pm.collectionVariables.get(\"venue_address\"));\r",
+							"    pm.expect($(\"p#phone\").text()).to.contain(pm.collectionVariables.get(\"venue_phone\"));\r",
+							"    pm.expect($(\"img#venue_img\").attr(\"src\")).equals(pm.collectionVariables.get(\"venue_image_link\"));\r",
+							"    pm.expect($(\"p#website\").text()).to.contain(pm.collectionVariables.get(\"venue_website\"));\r",
+							"    pm.expect($(\"p#facebook\").text()).to.contain(pm.collectionVariables.get(\"venue_facebook_link\"));\r",
+							"    var seeking = pm.collectionVariables.get(\"seeking_venue\")\r",
+							"    if (seeking == 'y') {\r",
+							"        pm.expect($(\"div#seeking\").text()).to.contain(pm.collectionVariables.get(\"seeking_talent_description\"));\r",
+							"    } else {\r",
+							"        pm.expect($(\"div#not-seeking\").text(), \"Not 'seeking' currently unsupported. \"\r",
+							"                                                    +\"Need separate request as currently can't modify request body programmatically.\").to.not.be.empty;\r",
+							"    }\r",
+							"});\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{server_ip}}{{venue_href}}",
+					"host": [
+						"{{server_ip}}{{venue_href}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete venue",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Load the HTML response to $\r",
+							"const $ = cheerio.load(pm.response.text());\r",
+							"\r",
+							"pm.test(\"Status code is 200\", () => {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {}
+			},
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "csrf_token",
+							"value": "{{csrf_token}}",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{server_ip}}{{venue_href}}",
+					"host": [
+						"{{server_ip}}{{venue_href}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete non-existent venue",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Load the HTML response to $\r",
+							"const $ = cheerio.load(pm.response.text());\r",
+							"\r",
+							"pm.test(\"Status code is 404\", () => {\r",
+							"    pm.response.to.have.status(404);\r",
+							"});\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {}
+			},
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "csrf_token",
+							"value": "{{csrf_token}}",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{server_ip}}{{venue_href}}",
+					"host": [
+						"{{server_ip}}{{venue_href}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create artist for show",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Load the HTML response to $\r",
+							"const $ = cheerio.load(pm.response.text());\r",
+							"\r",
+							"pm.test(\"Status code is 200\", () => {\r",
+							"  pm.response.to.have.status(200);\r",
+							"\r",
+							"    // set the CSRF token for subsequent requests\r",
+							"    pm.collectionVariables.set(\"csrf_token\", $(\"input#csrf_token\").attr('value'));\r",
+							"    // use date provided by server\r",
+							"    pm.collectionVariables.set(\"from_date\", $(\"input#from_date\").attr('value'));\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{server_ip}}/artists/create",
+					"host": [
+						"{{server_ip}}"
+					],
+					"path": [
+						"artists",
+						"create"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create artist for show",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Load the HTML response to $\r",
+							"const $ = cheerio.load(pm.response.text());\r",
+							"\r",
+							"pm.test(\"Status code is 200\", () => {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Shown in latest listing\", () => {\r",
+							"  \r",
+							"    const artist_href = $(\"a#latest_artist0\").attr('href');\r",
+							"    pm.expect(artist_href).to.not.be.empty;\r",
+							"    pm.expect(artist_href).to.match(/\\/artists\\/\\d+/)\r",
+							"\r",
+							"    var regEx = new RegExp(\"/artists/([0-9]+)\");\r",
+							"    var resultArray = regEx.exec(artist_href);\r",
+							"    artist_id = resultArray[1]\r",
+							"\r",
+							"    pm.collectionVariables.set(\"artist_href\", artist_href);\r",
+							"    pm.collectionVariables.set(\"artist_id\", artist_id);\r",
+							"\r",
+							"\r",
+							"    const artist_name = $(\"i#latest_artist_name0\").text().trim();\r",
+							"    pm.expect(artist_name).to.equal(pm.collectionVariables.get(\"artist_name\"));\r",
+							"});\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"pm.collectionVariables.set(\"artist_name\", \"Fred Show\");\r",
+							"pm.collectionVariables.set(\"artist_city\", \"Visible\");\r",
+							"pm.collectionVariables.set(\"artist_state\", \"ID\");\r",
+							"pm.collectionVariables.set(\"artist_phone\", \"555-325-5123\");\r",
+							"pm.collectionVariables.set(\"artist_website\", \"http://www.fredshow.com\");\r",
+							"pm.collectionVariables.set(\"artist_image_link\", \"https://unsplash.com/photos/TlxE_EtMWWY\");\r",
+							"pm.collectionVariables.set(\"artist_genres\", \"Blues\");\r",
+							"pm.collectionVariables.set(\"artist_facebook_link\", \"http://www.facebook.com/fredshow\");\r",
+							"pm.collectionVariables.set(\"seeking_venue\", \"y\");\r",
+							"pm.collectionVariables.set(\"seeking_venue_description\", \"Big enough for 2 to 20\");\r",
+							"show_artist_available_from = pm.collectionVariables.get(\"show_artist_available_from\")\r",
+							"show_artist_available_to = pm.collectionVariables.get(\"show_artist_available_to\")\r",
+							"pm.collectionVariables.set(\"artist_mon_from\", show_artist_available_from);\r",
+							"pm.collectionVariables.set(\"artist_mon_to\", show_artist_available_to);\r",
+							"pm.collectionVariables.set(\"artist_tue_from\", show_artist_available_from);\r",
+							"pm.collectionVariables.set(\"artist_tue_to\", show_artist_available_to);\r",
+							"pm.collectionVariables.set(\"artist_wed_from\", show_artist_available_from);\r",
+							"pm.collectionVariables.set(\"artist_wed_to\", show_artist_available_to);\r",
+							"pm.collectionVariables.set(\"artist_thu_from\", show_artist_available_from);\r",
+							"pm.collectionVariables.set(\"artist_thu_to\", show_artist_available_to);\r",
+							"pm.collectionVariables.set(\"artist_fri_from\", show_artist_available_from);\r",
+							"pm.collectionVariables.set(\"artist_fri_to\", show_artist_available_to);\r",
+							"pm.collectionVariables.set(\"artist_sat_from\", show_artist_available_from);\r",
+							"pm.collectionVariables.set(\"artist_sat_to\", show_artist_available_to);\r",
+							"pm.collectionVariables.set(\"artist_sun_from\", show_artist_available_from);\r",
+							"pm.collectionVariables.set(\"artist_sun_to\", show_artist_available_to);\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "csrf_token",
+							"value": "{{csrf_token}}",
+							"type": "text"
+						},
+						{
+							"key": "name",
+							"value": "{{artist_name}}",
+							"type": "text"
+						},
+						{
+							"key": "city",
+							"value": "{{artist_city}}",
+							"type": "text"
+						},
+						{
+							"key": "state",
+							"value": "{{artist_state}}",
+							"type": "text"
+						},
+						{
+							"key": "phone",
+							"value": "{{artist_phone}}",
+							"type": "text"
+						},
+						{
+							"key": "genres",
+							"value": "{{artist_genres}}",
+							"type": "text"
+						},
+						{
+							"key": "facebook_link",
+							"value": "{{artist_facebook_link}}",
+							"type": "text"
+						},
+						{
+							"key": "website",
+							"value": "{{artist_website}}",
+							"type": "text"
+						},
+						{
+							"key": "image_link",
+							"value": "{{artist_image_link}}",
+							"type": "text"
+						},
+						{
+							"key": "seeking_venue",
+							"value": "{{seeking_venue}}",
+							"type": "text"
+						},
+						{
+							"key": "seeking_description",
+							"value": "{{seeking_venue_description}}",
+							"type": "text"
+						},
+						{
+							"key": "from_date",
+							"value": "{{from_date}}",
+							"type": "text"
+						},
+						{
+							"key": "mon_from",
+							"value": "{{artist_mon_from}}",
+							"type": "text"
+						},
+						{
+							"key": "mon_to",
+							"value": "{{artist_mon_to}}",
+							"type": "text"
+						},
+						{
+							"key": "tue_from",
+							"value": "{{artist_tue_from}}",
+							"type": "text"
+						},
+						{
+							"key": "tue_to",
+							"value": "{{artist_tue_to}}",
+							"type": "text"
+						},
+						{
+							"key": "wed_from",
+							"value": "{{artist_wed_from}}",
+							"type": "text"
+						},
+						{
+							"key": "wed_to",
+							"value": "{{artist_wed_to}}",
+							"type": "text"
+						},
+						{
+							"key": "thu_from",
+							"value": "{{artist_thu_from}}",
+							"type": "text"
+						},
+						{
+							"key": "thu_to",
+							"value": "{{artist_thu_to}}",
+							"type": "text"
+						},
+						{
+							"key": "fri_from",
+							"value": "{{artist_fri_from}}",
+							"type": "text"
+						},
+						{
+							"key": "fri_to",
+							"value": "{{artist_fri_to}}",
+							"type": "text"
+						},
+						{
+							"key": "sat_from",
+							"value": "{{artist_sat_from}}",
+							"type": "text"
+						},
+						{
+							"key": "sat_to",
+							"value": "{{artist_sat_to}}",
+							"type": "text"
+						},
+						{
+							"key": "sun_from",
+							"value": "{{artist_sun_from}}",
+							"type": "text"
+						},
+						{
+							"key": "sun_to",
+							"value": "{{artist_sun_to}}",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{server_ip}}/artists/create",
+					"host": [
+						"{{server_ip}}"
+					],
+					"path": [
+						"artists",
+						"create"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create venue for show",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Load the HTML response to $\r",
+							"const $ = cheerio.load(pm.response.text());\r",
+							"\r",
+							"\r",
+							"pm.test(\"Status code is 200\", () => {\r",
+							"  pm.response.to.have.status(200);\r",
+							"\r",
+							"    // set the CSRF token for subsequent requests\r",
+							"    pm.collectionVariables.set(\"csrf_token\", $(\"input#csrf_token\").attr('value'));\r",
+							"});\r",
+							"\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{server_ip}}/venues/create",
+					"host": [
+						"{{server_ip}}"
+					],
+					"path": [
+						"venues",
+						"create"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create venue for show",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Load the HTML response to $\r",
+							"const $ = cheerio.load(pm.response.text());\r",
+							"\r",
+							"pm.test(\"Status code is 200\", () => {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Shown in latest listing\", () => {\r",
+							"  \r",
+							"    const venue_href = $(\"a#latest_venue0\").attr('href');\r",
+							"    pm.expect(venue_href).to.not.be.empty;\r",
+							"    pm.expect(venue_href).to.match(/\\/venues\\/\\d+/)\r",
+							"\r",
+							"    var regEx = new RegExp(\"/venues/([0-9]+)\");\r",
+							"    var resultArray = regEx.exec(venue_href);\r",
+							"    venue_id = resultArray[1]\r",
+							"\r",
+							"    pm.collectionVariables.set(\"venue_href\", venue_href);\r",
+							"    pm.collectionVariables.set(\"venue_id\", venue_id);\r",
+							"\r",
+							"\r",
+							"    const venue_name = $(\"i#latest_venue_name0\").text().trim();\r",
+							"    pm.expect(venue_name).to.equal(pm.collectionVariables.get(\"venue_name\"));\r",
+							"});\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"pm.collectionVariables.set(\"venue_name\", \"The Show Spot\");\r",
+							"pm.collectionVariables.set(\"venue_city\", \"X Marks\");\r",
+							"pm.collectionVariables.set(\"venue_state\", \"LA\");\r",
+							"pm.collectionVariables.set(\"venue_address\", \"1 Easy St.\");\r",
+							"pm.collectionVariables.set(\"venue_phone\", \"553-954-1467\");\r",
+							"pm.collectionVariables.set(\"venue_website\", \"http://www.showspot.com\");\r",
+							"pm.collectionVariables.set(\"venue_image_link\", \"https://unsplash.com/photos/Xmy1BIxtOmY\");\r",
+							"pm.collectionVariables.set(\"venue_genres\", \"Rock n Roll\");\r",
+							"pm.collectionVariables.set(\"venue_facebook_link\", \"http://www.facebook.com/showspot\");\r",
+							"pm.collectionVariables.set(\"seeking_talent\", \"y\");\r",
+							"pm.collectionVariables.set(\"seeking_talent_description\", \"All welcome\");\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "csrf_token",
+							"value": "{{csrf_token}}",
+							"type": "text"
+						},
+						{
+							"key": "name",
+							"value": "{{venue_name}}",
+							"type": "text"
+						},
+						{
+							"key": "city",
+							"value": "{{venue_city}}",
+							"type": "text"
+						},
+						{
+							"key": "state",
+							"value": "{{venue_state}}",
+							"type": "text"
+						},
+						{
+							"key": "address",
+							"value": "{{venue_address}}",
+							"type": "text"
+						},
+						{
+							"key": "phone",
+							"value": "{{venue_phone}}",
+							"type": "text"
+						},
+						{
+							"key": "genres",
+							"value": "{{venue_genres}}",
+							"type": "text"
+						},
+						{
+							"key": "facebook_link",
+							"value": "{{venue_facebook_link}}",
+							"type": "text"
+						},
+						{
+							"key": "website",
+							"value": "{{venue_website}}",
+							"type": "text"
+						},
+						{
+							"key": "image_link",
+							"value": "{{venue_image_link}}",
+							"type": "text"
+						},
+						{
+							"key": "seeking_talent",
+							"value": "{{seeking_talent}}",
+							"type": "text"
+						},
+						{
+							"key": "seeking_description",
+							"value": "{{seeking_talent_description}}",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{server_ip}}/venues/create",
+					"host": [
+						"{{server_ip}}"
+					],
+					"path": [
+						"venues",
+						"create"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create show",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Load the HTML response to $\r",
+							"const $ = cheerio.load(pm.response.text());\r",
+							"\r",
+							"\r",
+							"pm.test(\"Status code is 200\", () => {\r",
+							"  pm.response.to.have.status(200);\r",
+							"\r",
+							"    // set the CSRF token for subsequent requests\r",
+							"    pm.collectionVariables.set(\"csrf_token\", $(\"input#csrf_token\").attr('value'));\r",
+							"    // use date provided by server\r",
+							"    pm.collectionVariables.set(\"start_time\", $(\"input#start_time\").attr('value'));\r",
+							"\r",
+							"});\r",
+							"\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{server_ip}}/shows/create",
+					"host": [
+						"{{server_ip}}"
+					],
+					"path": [
+						"shows",
+						"create"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create show (no artist availability)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Load the HTML response to $\r",
+							"const $ = cheerio.load(pm.response.text());\r",
+							"\r",
+							"pm.test(\"Status code is 202\", () => {\r",
+							"    pm.response.to.have.status(202);\r",
+							"});\r",
+							"\r",
+							"function valueIsCorrect(value, expected, op, attrib) {\r",
+							"    if (value == expected) {\r",
+							"        pm.expect($(op).attr(attrib), \"Option \"+value+\" not \"+attrib).exist;\r",
+							"    } else {\r",
+							"        pm.expect($(op).attr(attrib), \"Option \"+value+\" \"+attrib).does.not.exist;\r",
+							"    }\r",
+							"}\r",
+							"\r",
+							"pm.test(\"Error shown in latest listing\", () => {\r",
+							"    const error = 'Artist availability conflict';\r",
+							"    var found = false;\r",
+							"    $('main[id=\"content\"]')\r",
+							"        .find('.alert')\r",
+							"        .each((i,op) => {\r",
+							"            if ($(op).text().includes(error)) {\r",
+							"                found = true;\r",
+							"            }\r",
+							"        });\r",
+							"    pm.expect(found, \"Error not found\").equals(true);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Listing is correct\", () => {\r",
+							"    const artist_id = pm.collectionVariables.get(\"artist_id\");\r",
+							"    $(\"select#artist_id\")\r",
+							"        .find('option')\r",
+							"        .each((i,op) => {\r",
+							"            valueIsCorrect($(op).attr(\"value\"), artist_id, op, \"selected\");\r",
+							"        });\r",
+							"    const venue_id = pm.collectionVariables.get(\"venue_id\");\r",
+							"    $(\"select#venue_id\")\r",
+							"        .find('option')\r",
+							"        .each((i,op) => {\r",
+							"            valueIsCorrect($(op).attr(\"value\"), venue_id, op, \"selected\");\r",
+							"        });\r",
+							"\r",
+							"    const duration = pm.collectionVariables.get(\"duration\");\r",
+							"    $('main[id=\"content\"]')\r",
+							"        .find('.input')\r",
+							"        .filter(function (i, el) {\r",
+							"            return $(this).attr('id').startsWith('duration');\r",
+							"        })\r",
+							"        .each((i,op) => {\r",
+							"            valueIsCorrect($(op).attr(\"value\"), duration, op, \"checked\");\r",
+							"        });\r",
+							"\r",
+							"    const other = $('input#other_duration').attr(\"value\").trim();\r",
+							"    pm.expect(other).to.equal(pm.collectionVariables.get(\"other_duration\"));\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// set start_time to am slot which is outside artist availability, 'yyyy-mm-dd hh:ss'\r",
+							"var start_time = new Date(pm.collectionVariables.get(\"start_time\"));\r",
+							"start_time.setDate(start_time.getDate() + 1);   // next day\r",
+							"\r",
+							"show_artist_available_from = pm.collectionVariables.get(\"show_artist_available_from\")\r",
+							"hour = parseInt(show_artist_available_from.slice(0,2));\r",
+							"minute = parseInt(show_artist_available_from.slice(3,5));\r",
+							"\r",
+							"start_time.setHours(hour-1, minute); // 1 hr too early\r",
+							"// adjust to utc\r",
+							"start_time.setTime(start_time.getTime() - (start_time.getTimezoneOffset()*60*1000))\r",
+							"\r",
+							"start_time = start_time.toISOString();  // expected output: 2011-10-05T14:48:00.000Z\r",
+							"start_time = start_time.slice(0, 10) + ' ' + start_time.slice(11, 16);\r",
+							"pm.collectionVariables.set(\"start_time\", start_time);\r",
+							"pm.collectionVariables.set(\"duration\", \"30\");\r",
+							"pm.collectionVariables.set(\"other_duration\", \"\");\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "csrf_token",
+							"value": "{{csrf_token}}",
+							"type": "text"
+						},
+						{
+							"key": "artist_id",
+							"value": "{{artist_id}}",
+							"type": "text"
+						},
+						{
+							"key": "venue_id",
+							"value": "{{venue_id}}",
+							"type": "text"
+						},
+						{
+							"key": "start_time",
+							"value": "{{start_time}}",
+							"type": "text"
+						},
+						{
+							"key": "duration",
+							"value": "{{duration}}",
+							"type": "text"
+						},
+						{
+							"key": "other_duration",
+							"value": "{{other_duration}}",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{server_ip}}/shows/create",
+					"host": [
+						"{{server_ip}}"
+					],
+					"path": [
+						"shows",
+						"create"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create show (artist start too early)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Load the HTML response to $\r",
+							"const $ = cheerio.load(pm.response.text());\r",
+							"\r",
+							"pm.test(\"Status code is 202\", () => {\r",
+							"    pm.response.to.have.status(202);\r",
+							"});\r",
+							"\r",
+							"function valueIsCorrect(value, expected, op, attrib) {\r",
+							"    if (value == expected) {\r",
+							"        pm.expect($(op).attr(attrib), \"Option \"+value+\" not \"+attrib).exist;\r",
+							"    } else {\r",
+							"        pm.expect($(op).attr(attrib), \"Option \"+value+\" \"+attrib).does.not.exist;\r",
+							"    }\r",
+							"}\r",
+							"\r",
+							"pm.test(\"Error shown in latest listing\", () => {\r",
+							"    const error = 'Artist availability conflict';\r",
+							"    var found = false;\r",
+							"    $('main[id=\"content\"]')\r",
+							"        .find('.alert')\r",
+							"        .each((i,op) => {\r",
+							"            if ($(op).text().includes(error)) {\r",
+							"                found = true;\r",
+							"            }\r",
+							"        });\r",
+							"    pm.expect(found, \"Error not found\").equals(true);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Listing is correct\", () => {\r",
+							"    const artist_id = pm.collectionVariables.get(\"artist_id\");\r",
+							"    $(\"select#artist_id\")\r",
+							"        .find('option')\r",
+							"        .each((i,op) => {\r",
+							"            valueIsCorrect($(op).attr(\"value\"), artist_id, op, \"selected\");\r",
+							"        });\r",
+							"    const venue_id = pm.collectionVariables.get(\"venue_id\");\r",
+							"    $(\"select#venue_id\")\r",
+							"        .find('option')\r",
+							"        .each((i,op) => {\r",
+							"            valueIsCorrect($(op).attr(\"value\"), venue_id, op, \"selected\");\r",
+							"        });\r",
+							"\r",
+							"    const duration = pm.collectionVariables.get(\"duration\");\r",
+							"    $('main[id=\"content\"]')\r",
+							"        .find('.input')\r",
+							"        .filter(function (i, el) {\r",
+							"            return $(this).attr('id').startsWith('duration');\r",
+							"        })\r",
+							"        .each((i,op) => {\r",
+							"            valueIsCorrect($(op).attr(\"value\"), duration, op, \"checked\");\r",
+							"        });\r",
+							"\r",
+							"    const other = $('input#other_duration').attr(\"value\").trim();\r",
+							"    pm.expect(other).to.equal(pm.collectionVariables.get(\"other_duration\"));\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// set start_time to before artist availability, 'yyyy-mm-dd hh:mm'\r",
+							"// set start_time to am slot which is outside artist availability, 'yyyy-mm-dd hh:ss'\r",
+							"var start_time = new Date(pm.collectionVariables.get(\"start_time\"));\r",
+							"\r",
+							"show_artist_available_from = pm.collectionVariables.get(\"show_artist_available_from\")\r",
+							"hour = parseInt(show_artist_available_from.slice(0,2));\r",
+							"minute = parseInt(show_artist_available_from.slice(3,5));\r",
+							"\r",
+							"start_time.setHours(hour-1, minute); // 1 hr too early\r",
+							"// adjust to utc\r",
+							"start_time.setTime(start_time.getTime() - (start_time.getTimezoneOffset()*60*1000))\r",
+							"\r",
+							"start_time = start_time.toISOString();  // expected output: 2011-10-05T14:48:00.000Z\r",
+							"start_time = start_time.slice(0, 10) + ' ' + start_time.slice(11, 16);\r",
+							"pm.collectionVariables.set(\"start_time\", start_time);\r",
+							"pm.collectionVariables.set(\"duration\", \"120\");\r",
+							"pm.collectionVariables.set(\"other_duration\", \"\");\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "csrf_token",
+							"value": "{{csrf_token}}",
+							"type": "text"
+						},
+						{
+							"key": "artist_id",
+							"value": "{{artist_id}}",
+							"type": "text"
+						},
+						{
+							"key": "venue_id",
+							"value": "{{venue_id}}",
+							"type": "text"
+						},
+						{
+							"key": "start_time",
+							"value": "{{start_time}}",
+							"type": "text"
+						},
+						{
+							"key": "duration",
+							"value": "{{duration}}",
+							"type": "text"
+						},
+						{
+							"key": "other_duration",
+							"value": "{{other_duration}}",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{server_ip}}/shows/create",
+					"host": [
+						"{{server_ip}}"
+					],
+					"path": [
+						"shows",
+						"create"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create show (end too late for artist)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Load the HTML response to $\r",
+							"const $ = cheerio.load(pm.response.text());\r",
+							"\r",
+							"pm.test(\"Status code is 202\", () => {\r",
+							"    pm.response.to.have.status(202);\r",
+							"});\r",
+							"\r",
+							"function valueIsCorrect(value, expected, op, attrib) {\r",
+							"    if (value == expected) {\r",
+							"        pm.expect($(op).attr(attrib), \"Option \"+value+\" not \"+attrib).exist;\r",
+							"    } else {\r",
+							"        pm.expect($(op).attr(attrib), \"Option \"+value+\" \"+attrib).does.not.exist;\r",
+							"    }\r",
+							"}\r",
+							"\r",
+							"pm.test(\"Error shown in latest listing\", () => {\r",
+							"    const error = 'Artist availability conflict';\r",
+							"    var found = false;\r",
+							"    $('main[id=\"content\"]')\r",
+							"        .find('.alert')\r",
+							"        .each((i,op) => {\r",
+							"            if ($(op).text().includes(error)) {\r",
+							"                found = true;\r",
+							"            }\r",
+							"        });\r",
+							"    pm.expect(found, \"Error not found\").equals(true);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Listing is correct\", () => {\r",
+							"    const artist_id = pm.collectionVariables.get(\"artist_id\");\r",
+							"    $(\"select#artist_id\")\r",
+							"        .find('option')\r",
+							"        .each((i,op) => {\r",
+							"            valueIsCorrect($(op).attr(\"value\"), artist_id, op, \"selected\");\r",
+							"        });\r",
+							"    const venue_id = pm.collectionVariables.get(\"venue_id\");\r",
+							"    $(\"select#venue_id\")\r",
+							"        .find('option')\r",
+							"        .each((i,op) => {\r",
+							"            valueIsCorrect($(op).attr(\"value\"), venue_id, op, \"selected\");\r",
+							"        });\r",
+							"\r",
+							"    const duration = pm.collectionVariables.get(\"duration\");\r",
+							"    $('main[id=\"content\"]')\r",
+							"        .find('.input')\r",
+							"        .filter(function (i, el) {\r",
+							"            return $(this).attr('id').startsWith('duration');\r",
+							"        })\r",
+							"        .each((i,op) => {\r",
+							"            valueIsCorrect($(op).attr(\"value\"), duration, op, \"checked\");\r",
+							"        });\r",
+							"\r",
+							"    const other = $('input#other_duration').attr(\"value\").trim();\r",
+							"    pm.expect(other).to.equal(pm.collectionVariables.get(\"other_duration\"));\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// set start_time to before artist availability, 'yyyy-mm-dd hh:ss'\r",
+							"var start_time = new Date(pm.collectionVariables.get(\"start_time\"));\r",
+							"\r",
+							"show_artist_available_to = pm.collectionVariables.get(\"show_artist_available_to\")\r",
+							"hour = parseInt(show_artist_available_to.slice(0,2));\r",
+							"minute = parseInt(show_artist_available_to.slice(3,5));\r",
+							"\r",
+							"start_time.setHours(hour-1, minute); // 1 hr before end\r",
+							"// adjust to utc\r",
+							"start_time.setTime(start_time.getTime() - (start_time.getTimezoneOffset()*60*1000))\r",
+							"\r",
+							"start_time = start_time.toISOString();  // expected output: 2011-10-05T14:48:00.000Z\r",
+							"start_time = start_time.slice(0, 10) + ' ' + start_time.slice(11, 16);\r",
+							"pm.collectionVariables.set(\"start_time\", start_time);\r",
+							"pm.collectionVariables.set(\"duration\", \"120\");\r",
+							"pm.collectionVariables.set(\"other_duration\", \"\");\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "csrf_token",
+							"value": "{{csrf_token}}",
+							"type": "text"
+						},
+						{
+							"key": "artist_id",
+							"value": "{{artist_id}}",
+							"type": "text"
+						},
+						{
+							"key": "venue_id",
+							"value": "{{venue_id}}",
+							"type": "text"
+						},
+						{
+							"key": "start_time",
+							"value": "{{start_time}}",
+							"type": "text"
+						},
+						{
+							"key": "duration",
+							"value": "{{duration}}",
+							"type": "text"
+						},
+						{
+							"key": "other_duration",
+							"value": "{{other_duration}}",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{server_ip}}/shows/create",
+					"host": [
+						"{{server_ip}}"
+					],
+					"path": [
+						"shows",
+						"create"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create show (ok)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Load the HTML response to $\r",
+							"const $ = cheerio.load(pm.response.text());\r",
+							"\r",
+							"pm.test(\"Status code is 200\", () => {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// set start_time to before artist availability, 'yyyy-mm-dd hh:ss'\r",
+							"var start_time = new Date(pm.collectionVariables.get(\"start_time\"));\r",
+							"\r",
+							"show_artist_available_to = pm.collectionVariables.get(\"show_artist_available_to\")\r",
+							"hour = parseInt(show_artist_available_to.slice(0,2));\r",
+							"minute = parseInt(show_artist_available_to.slice(3,5));\r",
+							"\r",
+							"start_time.setHours(hour-1, minute); // 1 hr before end\r",
+							"\r",
+							"start_time = start_time.toISOString();  // expected output: 2011-10-05T14:48:00.000Z\r",
+							"start_time = start_time.slice(0, 10) + ' ' + start_time.slice(11, 16);\r",
+							"pm.collectionVariables.set(\"start_time\", start_time);\r",
+							"pm.collectionVariables.set(\"duration\", \"60\");\r",
+							"pm.collectionVariables.set(\"other_duration\", \"\");\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "csrf_token",
+							"value": "{{csrf_token}}",
+							"type": "text"
+						},
+						{
+							"key": "artist_id",
+							"value": "{{artist_id}}",
+							"type": "text"
+						},
+						{
+							"key": "venue_id",
+							"value": "{{venue_id}}",
+							"type": "text"
+						},
+						{
+							"key": "start_time",
+							"value": "{{start_time}}",
+							"type": "text"
+						},
+						{
+							"key": "duration",
+							"value": "{{duration}}",
+							"type": "text"
+						},
+						{
+							"key": "other_duration",
+							"value": "{{other_duration}}",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{server_ip}}/shows/create",
+					"host": [
+						"{{server_ip}}"
+					],
+					"path": [
+						"shows",
+						"create"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create show (no venue availability)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Load the HTML response to $\r",
+							"const $ = cheerio.load(pm.response.text());\r",
+							"\r",
+							"pm.test(\"Status code is 202\", () => {\r",
+							"    pm.response.to.have.status(202);\r",
+							"});\r",
+							"\r",
+							"function valueIsCorrect(value, expected, op, attrib) {\r",
+							"    if (value == expected) {\r",
+							"        pm.expect($(op).attr(attrib), \"Option \"+value+\" not \"+attrib).exist;\r",
+							"    } else {\r",
+							"        pm.expect($(op).attr(attrib), \"Option \"+value+\" \"+attrib).does.not.exist;\r",
+							"    }\r",
+							"}\r",
+							"\r",
+							"pm.test(\"Error shown in latest listing\", () => {\r",
+							"    const error = 'Booking conflict';\r",
+							"    var found = false;\r",
+							"    $('main[id=\"content\"]')\r",
+							"        .find('.alert')\r",
+							"        .each((i,op) => {\r",
+							"            if ($(op).text().includes(error)) {\r",
+							"                found = true;\r",
+							"            }\r",
+							"        });\r",
+							"    pm.expect(found, \"Error not found\").equals(true);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Listing is correct\", () => {\r",
+							"    const artist_id = pm.collectionVariables.get(\"artist_id\");\r",
+							"    $(\"select#artist_id\")\r",
+							"        .find('option')\r",
+							"        .each((i,op) => {\r",
+							"            valueIsCorrect($(op).attr(\"value\"), artist_id, op, \"selected\");\r",
+							"        });\r",
+							"    const venue_id = pm.collectionVariables.get(\"venue_id\");\r",
+							"    $(\"select#venue_id\")\r",
+							"        .find('option')\r",
+							"        .each((i,op) => {\r",
+							"            valueIsCorrect($(op).attr(\"value\"), venue_id, op, \"selected\");\r",
+							"        });\r",
+							"\r",
+							"    const duration = pm.collectionVariables.get(\"duration\");\r",
+							"    $('main[id=\"content\"]')\r",
+							"        .find('.input')\r",
+							"        .filter(function (i, el) {\r",
+							"            return $(this).attr('id').startsWith('duration');\r",
+							"        })\r",
+							"        .each((i,op) => {\r",
+							"            valueIsCorrect($(op).attr(\"value\"), duration, op, \"checked\");\r",
+							"        });\r",
+							"\r",
+							"    const other = $('input#other_duration').attr(\"value\").trim();\r",
+							"    pm.expect(other).to.equal(pm.collectionVariables.get(\"other_duration\"));\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// set start_time to before artist availability, 'yyyy-mm-dd hh:ss'\r",
+							"var start_time = new Date(pm.collectionVariables.get(\"start_time\"));\r",
+							"\r",
+							"show_artist_available_to = pm.collectionVariables.get(\"show_artist_available_to\")\r",
+							"hour = parseInt(show_artist_available_to.slice(0,2));\r",
+							"minute = parseInt(show_artist_available_to.slice(3,5));\r",
+							"\r",
+							"start_time.setHours(hour-1, minute); // 1 hr before end\r",
+							"\r",
+							"start_time = start_time.toISOString();  // expected output: 2011-10-05T14:48:00.000Z\r",
+							"start_time = start_time.slice(0, 10) + ' ' + start_time.slice(11, 16);\r",
+							"pm.collectionVariables.set(\"start_time\", start_time);\r",
+							"pm.collectionVariables.set(\"duration\", \"60\");\r",
+							"pm.collectionVariables.set(\"other_duration\", \"\");\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "csrf_token",
+							"value": "{{csrf_token}}",
+							"type": "text"
+						},
+						{
+							"key": "artist_id",
+							"value": "{{artist_id}}",
+							"type": "text"
+						},
+						{
+							"key": "venue_id",
+							"value": "{{venue_id}}",
+							"type": "text"
+						},
+						{
+							"key": "start_time",
+							"value": "{{start_time}}",
+							"type": "text"
+						},
+						{
+							"key": "duration",
+							"value": "{{duration}}",
+							"type": "text"
+						},
+						{
+							"key": "other_duration",
+							"value": "{{other_duration}}",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{server_ip}}/shows/create",
+					"host": [
+						"{{server_ip}}"
+					],
+					"path": [
+						"shows",
+						"create"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create show (start too early for venue)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Load the HTML response to $\r",
+							"const $ = cheerio.load(pm.response.text());\r",
+							"\r",
+							"pm.test(\"Status code is 202\", () => {\r",
+							"    pm.response.to.have.status(202);\r",
+							"});\r",
+							"\r",
+							"function valueIsCorrect(value, expected, op, attrib) {\r",
+							"    if (value == expected) {\r",
+							"        pm.expect($(op).attr(attrib), \"Option \"+value+\" not \"+attrib).exist;\r",
+							"    } else {\r",
+							"        pm.expect($(op).attr(attrib), \"Option \"+value+\" \"+attrib).does.not.exist;\r",
+							"    }\r",
+							"}\r",
+							"\r",
+							"pm.test(\"Error shown in latest listing\", () => {\r",
+							"    const error = 'Artist availability conflict';\r",
+							"    var found = false;\r",
+							"    $('main[id=\"content\"]')\r",
+							"        .find('.alert')\r",
+							"        .each((i,op) => {\r",
+							"            if ($(op).text().includes(error)) {\r",
+							"                found = true;\r",
+							"            }\r",
+							"        });\r",
+							"    pm.expect(found, \"Error not found\").equals(true);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Listing is correct\", () => {\r",
+							"    const artist_id = pm.collectionVariables.get(\"artist_id\");\r",
+							"    $(\"select#artist_id\")\r",
+							"        .find('option')\r",
+							"        .each((i,op) => {\r",
+							"            valueIsCorrect($(op).attr(\"value\"), artist_id, op, \"selected\");\r",
+							"        });\r",
+							"    const venue_id = pm.collectionVariables.get(\"venue_id\");\r",
+							"    $(\"select#venue_id\")\r",
+							"        .find('option')\r",
+							"        .each((i,op) => {\r",
+							"            valueIsCorrect($(op).attr(\"value\"), venue_id, op, \"selected\");\r",
+							"        });\r",
+							"\r",
+							"    const duration = pm.collectionVariables.get(\"duration\");\r",
+							"    $('main[id=\"content\"]')\r",
+							"        .find('.input')\r",
+							"        .filter(function (i, el) {\r",
+							"            return $(this).attr('id').startsWith('duration');\r",
+							"        })\r",
+							"        .each((i,op) => {\r",
+							"            valueIsCorrect($(op).attr(\"value\"), duration, op, \"checked\");\r",
+							"        });\r",
+							"\r",
+							"    const other = $('input#other_duration').attr(\"value\").trim();\r",
+							"    pm.expect(other).to.equal(pm.collectionVariables.get(\"other_duration\"));\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// set start_time to before artist availability, 'yyyy-mm-dd hh:mm'\r",
+							"var start_time = new Date(pm.collectionVariables.get(\"start_time\"));\r",
+							"\r",
+							"show_artist_available_from = pm.collectionVariables.get(\"show_artist_available_from\")\r",
+							"hour = parseInt(show_artist_available_from.slice(0,2));\r",
+							"minute = parseInt(show_artist_available_from.slice(3,5));\r",
+							"\r",
+							"start_time.setHours(hour-1, minute); // 1 hr before start\r",
+							"// adjust to utc\r",
+							"start_time.setTime(start_time.getTime() - (start_time.getTimezoneOffset()*60*1000))\r",
+							"\r",
+							"start_time = start_time.toISOString();  // expected output: 2011-10-05T14:48:00.000Z\r",
+							"start_time = start_time.slice(0, 10) + ' ' + start_time.slice(11, 16);\r",
+							"pm.collectionVariables.set(\"start_time\", start_time);\r",
+							"pm.collectionVariables.set(\"duration\", \"120\");\r",
+							"pm.collectionVariables.set(\"other_duration\", \"\");\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "csrf_token",
+							"value": "{{csrf_token}}",
+							"type": "text"
+						},
+						{
+							"key": "artist_id",
+							"value": "{{artist_id}}",
+							"type": "text"
+						},
+						{
+							"key": "venue_id",
+							"value": "{{venue_id}}",
+							"type": "text"
+						},
+						{
+							"key": "start_time",
+							"value": "{{start_time}}",
+							"type": "text"
+						},
+						{
+							"key": "duration",
+							"value": "{{duration}}",
+							"type": "text"
+						},
+						{
+							"key": "other_duration",
+							"value": "{{other_duration}}",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{server_ip}}/shows/create",
+					"host": [
+						"{{server_ip}}"
+					],
+					"path": [
+						"shows",
+						"create"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create show (venue start conflict)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Load the HTML response to $\r",
+							"const $ = cheerio.load(pm.response.text());\r",
+							"\r",
+							"pm.test(\"Status code is 202\", () => {\r",
+							"    pm.response.to.have.status(202);\r",
+							"});\r",
+							"\r",
+							"function valueIsCorrect(value, expected, op, attrib) {\r",
+							"    if (value == expected) {\r",
+							"        pm.expect($(op).attr(attrib), \"Option \"+value+\" not \"+attrib).exist;\r",
+							"    } else {\r",
+							"        pm.expect($(op).attr(attrib), \"Option \"+value+\" \"+attrib).does.not.exist;\r",
+							"    }\r",
+							"}\r",
+							"\r",
+							"pm.test(\"Error shown in latest listing\", () => {\r",
+							"    const error = 'Artist availability';\r",
+							"    var found = false;\r",
+							"    $('main[id=\"content\"]')\r",
+							"        .find('.alert')\r",
+							"        .each((i,op) => {\r",
+							"            if ($(op).text().includes(error)) {\r",
+							"                found = true;\r",
+							"            }\r",
+							"        });\r",
+							"    pm.expect(found, \"Error not found\").equals(true);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Listing is correct\", () => {\r",
+							"    const artist_id = pm.collectionVariables.get(\"artist_id\");\r",
+							"    $(\"select#artist_id\")\r",
+							"        .find('option')\r",
+							"        .each((i,op) => {\r",
+							"            valueIsCorrect($(op).attr(\"value\"), artist_id, op, \"selected\");\r",
+							"        });\r",
+							"    const venue_id = pm.collectionVariables.get(\"venue_id\");\r",
+							"    $(\"select#venue_id\")\r",
+							"        .find('option')\r",
+							"        .each((i,op) => {\r",
+							"            valueIsCorrect($(op).attr(\"value\"), venue_id, op, \"selected\");\r",
+							"        });\r",
+							"\r",
+							"    const duration = pm.collectionVariables.get(\"duration\");\r",
+							"    $('main[id=\"content\"]')\r",
+							"        .find('.input')\r",
+							"        .filter(function (i, el) {\r",
+							"            return $(this).attr('id').startsWith('duration');\r",
+							"        })\r",
+							"        .each((i,op) => {\r",
+							"            valueIsCorrect($(op).attr(\"value\"), duration, op, \"checked\");\r",
+							"        });\r",
+							"\r",
+							"    const other = $('input#other_duration').attr(\"value\").trim();\r",
+							"    pm.expect(other).to.equal(pm.collectionVariables.get(\"other_duration\"));\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// set start_time to before artist availability, 'yyyy-mm-dd hh:mm'\r",
+							"var start_time = new Date(pm.collectionVariables.get(\"start_time\"));\r",
+							"\r",
+							"show_artist_available_to = pm.collectionVariables.get(\"show_artist_available_to\")\r",
+							"hour = parseInt(show_artist_available_to.slice(0,2));\r",
+							"minute = parseInt(show_artist_available_to.slice(3,5));\r",
+							"\r",
+							"start_time.setHours(hour-1, minute+30); // 1/2 hr before end\r",
+							"// adjust to utc\r",
+							"start_time.setTime(start_time.getTime() - (start_time.getTimezoneOffset()*60*1000))\r",
+							"\r",
+							"start_time = start_time.toISOString();  // expected output: 2011-10-05T14:48:00.000Z\r",
+							"start_time = start_time.slice(0, 10) + ' ' + start_time.slice(11, 16);\r",
+							"pm.collectionVariables.set(\"start_time\", start_time);\r",
+							"pm.collectionVariables.set(\"duration\", \"60\");\r",
+							"pm.collectionVariables.set(\"other_duration\", \"\");\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "csrf_token",
+							"value": "{{csrf_token}}",
+							"type": "text"
+						},
+						{
+							"key": "artist_id",
+							"value": "{{artist_id}}",
+							"type": "text"
+						},
+						{
+							"key": "venue_id",
+							"value": "{{venue_id}}",
+							"type": "text"
+						},
+						{
+							"key": "start_time",
+							"value": "{{start_time}}",
+							"type": "text"
+						},
+						{
+							"key": "duration",
+							"value": "{{duration}}",
+							"type": "text"
+						},
+						{
+							"key": "other_duration",
+							"value": "{{other_duration}}",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{server_ip}}/shows/create",
+					"host": [
+						"{{server_ip}}"
+					],
+					"path": [
+						"shows",
+						"create"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "server_ip",
+			"value": "http://localhost:5000"
+		},
+		{
+			"key": "artist_name",
+			"value": "Jim Morrison"
+		},
+		{
+			"key": "csrf_token",
+			"value": ""
+		},
+		{
+			"key": "from_date",
+			"value": ""
+		},
+		{
+			"key": "artist_city",
+			"value": "Musicana"
+		},
+		{
+			"key": "artist_state",
+			"value": "KY"
+		},
+		{
+			"key": "artist_phone",
+			"value": "432-325-5777"
+		},
+		{
+			"key": "artist_website",
+			"value": "http://www.beebopshop.com"
+		},
+		{
+			"key": "artist_image_link",
+			"value": "http://www.beebopshop.com/image"
+		},
+		{
+			"key": "artist_genres",
+			"value": "Blues"
+		},
+		{
+			"key": "artist_facebook_link",
+			"value": "http://www.facebook.com/jimbomo"
+		},
+		{
+			"key": "seeking_venue",
+			"value": "y"
+		},
+		{
+			"key": "seeking_venue_description",
+			"value": "Just need my ukulele"
+		},
+		{
+			"key": "artist_mon_from",
+			"value": "14:00"
+		},
+		{
+			"key": "artist_mon_to",
+			"value": "15:00"
+		},
+		{
+			"key": "artist_tue_from",
+			"value": "15:00"
+		},
+		{
+			"key": "artist_tue_to",
+			"value": "16:00"
+		},
+		{
+			"key": "artist_wed_from",
+			"value": "17:15"
+		},
+		{
+			"key": "artist_wed_to",
+			"value": "18:45"
+		},
+		{
+			"key": "artist_thu_from",
+			"value": "19:00"
+		},
+		{
+			"key": "artist_thu_to",
+			"value": "22:00"
+		},
+		{
+			"key": "artist_fri_from",
+			"value": "19:00"
+		},
+		{
+			"key": "artist_fri_to",
+			"value": "23:00"
+		},
+		{
+			"key": "artist_sat_from",
+			"value": "09:00"
+		},
+		{
+			"key": "artist_sat_to",
+			"value": "17:00"
+		},
+		{
+			"key": "artist_sun_from",
+			"value": "12:00"
+		},
+		{
+			"key": "artist_sun_to",
+			"value": "00:00"
+		},
+		{
+			"key": "artist_href",
+			"value": ""
+		},
+		{
+			"key": "artist_id",
+			"value": ""
+		},
+		{
+			"key": "venue_name",
+			"value": ""
+		},
+		{
+			"key": "venue_city",
+			"value": ""
+		},
+		{
+			"key": "venue_state",
+			"value": ""
+		},
+		{
+			"key": "venue_address",
+			"value": ""
+		},
+		{
+			"key": "venue_phone",
+			"value": ""
+		},
+		{
+			"key": "venue_website",
+			"value": ""
+		},
+		{
+			"key": "venue_image_link",
+			"value": ""
+		},
+		{
+			"key": "venue_genres",
+			"value": ""
+		},
+		{
+			"key": "venue_facebook_link",
+			"value": ""
+		},
+		{
+			"key": "seeking_talent",
+			"value": ""
+		},
+		{
+			"key": "seeking_talent_description",
+			"value": ""
+		},
+		{
+			"key": "venue_href",
+			"value": ""
+		},
+		{
+			"key": "venue_id",
+			"value": ""
+		},
+		{
+			"key": "start_time",
+			"value": ""
+		},
+		{
+			"key": "duration",
+			"value": ""
+		},
+		{
+			"key": "other_duration",
+			"value": ""
+		},
+		{
+			"key": "show_artist_available_from",
+			"value": ""
+		},
+		{
+			"key": "show_artist_available_to",
+			"value": ""
+		}
+	]
+}

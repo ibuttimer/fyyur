@@ -1,0 +1,5 @@
+SERVER = '<server address>'
+PORT = '<database port>'
+DATABASE = '<database name>'
+USERNAME = '<username>'
+PASSWORD = '<password>'

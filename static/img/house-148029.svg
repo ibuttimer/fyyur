@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+ <defs>
+  <filter id="a" x="0" y="0" width="1" height="1">
+   <feGaussianBlur in="SourceAlpha" result="blur" stdDeviation="2"/>
+   <feColorMatrix result="bluralpha" values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 0.500000 0"/>
+   <feOffset dx="4" dy="4" in="bluralpha" result="offsetBlur"/>
+   <feMerge result="fbSourceGraphic">
+    <feMergeNode in="offsetBlur"/>
+    <feMergeNode in="SourceGraphic"/>
+   </feMerge>
+   <feColorMatrix in="fbSourceGraphic" result="fbSourceGraphicAlpha" values="0 0 0 -1 0 0 0 0 -1 0 0 0 0 -1 0 0 0 0 1 0"/>
+   <feColorMatrix in="fbSourceGraphic" type="saturate" values="0"/>
+  </filter>
+  <linearGradient id="c" x1="-74.427" x2="-78.367" y1="564.27" y2="476.81" gradientUnits="userSpaceOnUse">
+   <stop stop-color="#ccc" offset="0"/>
+   <stop stop-color="#ccc" stop-opacity="0" offset="1"/>
+  </linearGradient>
+  <linearGradient id="b" x1="-70.653" x2="-72.513" y1="538.5" y2="563.4" gradientUnits="userSpaceOnUse">
+   <stop stop-color="#666" offset="0"/>
+   <stop stop-color="#666" stop-opacity="0" offset="1"/>
+  </linearGradient>
+ </defs>
+ <path transform="matrix(.27439 0 0 .27663 38.804 -107.78)" d="m-96.989 586.68 127.35 0.50508 10.043-103.79c-19.807-22.613-38.584-57.655-71.973-60.862-31.202-2.9965-57.602 27.577-73.489 58.589l8.067 105.56z" fill="url(#c)" filter="url(#a)" stroke="#6c6c7e" stroke-width=".36296"/>
+ <path transform="matrix(.27439 0 0 .27663 38.804 -107.78)" d="m-114.15 487.69s48.924-66.345 82.833-65.66c33.029 0.66748 78.539 67.175 78.539 67.175l14.647-0.50508s-71.816-74.216-88.355-76.379c-20.033-2.6208-97.513 75.117-97.513 75.117l9.849 0.25254z" fill="#7288ad" filter="url(#a)" stroke="#878a96" stroke-linecap="round" stroke-miterlimit="31.2" stroke-width="5"/>
+ <path transform="matrix(.43594 0 0 .57008 58.374 -271.24)" d="m-78.539 537.02h27.779v33.082h-27.779z" fill="url(#b)" filter="url(#a)" stroke="#d5c4c4" stroke-linecap="round" stroke-width=".87795"/>
+</svg>

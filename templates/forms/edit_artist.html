@@ -1,38 +1,132 @@
 {% extends 'layouts/main.html' %}
-{% block title %}Edit Artist{% endblock %}
+{% block title %}{{title}}{% endblock %}
 {% block content %}
+<div class="form-wrapper col-sm-12">
   <div class="form-wrapper">
-    <form class="form" method="post" action="/artists/{{artist.id}}/edit">
-      <h3 class="form-heading">Edit artist <em>{{ artist.name }}</em></h3>
-      <div class="form-group">
-        <label for="name">Name</label>
-        {{ form.name(class_ = 'form-control', autofocus = true) }}
-      </div>
-      <div class="form-group">
-          <label>City & State</label>
-          <div class="form-inline">
-            <div class="form-group">
-              {{ form.city(class_ = 'form-control', placeholder='City', autofocus = true) }}
+    <form class="form" method="post" action="{{submit_action}}">
+      {{ form.hidden_tag() }}
+      <h3 class="form-heading">
+        {% if artist_name %}
+          Edit artist <em>{{artist_name}}</em>
+        {% else %}
+          List a new artist
+        {% endif %}
+        <a href="{{url_for('index')}}" title="Back to homepage"><i class="fa fa-home pull-right"></i></a>
+      </h3>
+      <div class="col-sm-6">
+        <div class="form-group">
+          <label for="name">Name</label>
+          {{ form.name(class_ = 'form-control', autofocus = true) }}
+        </div>
+        <div class="form-group">
+            <label>City & State</label>
+            <div class="form-inline">
+              <div class="form-group">
+                {{ form.city(class_ = 'form-control', placeholder='City', autofocus = true) }}
+              </div>
+              <div class="form-group">
+                {{ form.state(class_ = 'form-control', placeholder='State', autofocus = true) }}
+              </div>
             </div>
-            <div class="form-group">
-              {{ form.state(class_ = 'form-control', placeholder='State', autofocus = true) }}
-            </div>
+        </div>
+        <div class="form-group">
+            <label for="phone">Phone</label>
+            {{ form.phone(class_ = 'form-control', placeholder='xxx-xxx-xxxx', autofocus = true) }}
           </div>
-      </div>
-      <div class="form-group">
-          <label for="phone">Phone</label>
-          {{ form.phone(class_ = 'form-control', placeholder='xxx-xxx-xxxx', autofocus = true) }}
+        <div class="form-group">
+          <label for="genres">Genres</label>
+          <small>Ctrl+Click to select multiple</small>
+          {{ form.genres(class_ = 'form-control', placeholder='Genres, separated by commas', autofocus = true) }}
         </div>
-      <div class="form-group">
-        <label for="genres">Genres</label>
-        <small>Ctrl+Click to select multiple</small>
-        {{ form.genres(class_ = 'form-control', placeholder='Genres, separated by commas', id=form.state, autofocus = true) }}
-      </div>
-      <div class="form-group">
+        <div class="form-group">
           <label for="genres">Facebook Link</label>
-          {{ form.facebook_link(class_ = 'form-control', placeholder='http://', id=form.state, autofocus = true) }}
+          {{ form.facebook_link(class_ = 'form-control', placeholder='http://', autofocus = true) }}
         </div>
-      <input type="submit" value="Edit Artist" class="btn btn-primary btn-lg btn-block">
+        <div class="form-group">
+          <label for="website">Website</label>
+          {{ form.website(class_ = 'form-control', placeholder='http://', autofocus = true) }}
+        </div>
+        <div class="form-group">
+          <label for="image_link">Image Link</label>
+          {{ form.image_link(class_ = 'form-control', placeholder='http://', autofocus = true) }}
+        </div>
+        <div class="form-group">
+          <label for="seeking_venue">Seeking Venue</label>
+          {{ form.seeking_venue(class_ = 'form-control', autofocus = true) }}
+        </div>
+        <div class="form-group">
+          <label for="seeking_description">Description</label>
+          {{ form.seeking_description(class_ = 'form-control', autofocus = true) }}
+        </div>
+      </div>
+      <div id="availability_list" class="col-sm-6">
+        <div class="form-group">
+          <label for="from_date">Availability From</label>
+          {{ form.from_date(class_ = 'form-control dtpick', placeholder='YYYY-MM-DD HH:MM', title="Availability effective from", autofocus = true) }}
+        </div>
+        {% set availabilityTimes = [
+            ("Monday", form.mon_from, form.mon_to),
+            ("Wednesday", form.wed_from, form.wed_to),
+            ("Friday", form.fri_from, form.fri_to),
+            ("Sunday", form.sun_from, form.sun_to)
+          ] %}
+          <div class="col-sm-6 row">
+            {% for day in availabilityTimes %}
+            <div class="form-group">
+              <label>{{day[0]}}</label>
+              <div class="form-inline">
+                <div class="form-group ">
+                  {{ day[1](class_ = 'form-control tpick', placeholder='HH:MM', title=day[0] + " available from", autofocus = true) }}
+                </div>
+                <div class="form-group ">
+                  {{ day[2](class_ = 'form-control tpick', placeholder='HH:MM', title=day[0] + " available until", autofocus = true) }}
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+          </div>
+
+          {% set availabilityTimes = [
+            ("Tuesday", form.tue_from, form.tue_to),
+            ("Thursday", form.thu_from, form.thu_to),
+            ("Saturday", form.sat_from, form.sat_to),
+          ] %}
+          <div class="col-sm-6">
+            {% for day in availabilityTimes %}
+            <div class="form-group">
+              <label>{{day[0]}}</label>
+              <div class="form-inline">
+                <div class="form-group ">
+                  {{ day[1](class_ = 'form-control tpick', placeholder='HH:MM', title=day[0] + " available from", autofocus = true) }}
+                </div>
+                <div class="form-group ">
+                  {{ day[2](class_ = 'form-control tpick', placeholder='HH:MM', title=day[0] + " available until", autofocus = true) }}
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+        <div class="col-sm-12">
+          {% if form.errors %}
+          <ul class="errors">
+            {% for field_name, field_errors in form.errors|dictsort if field_errors %}
+                {% for error in field_errors %}
+                    <li>{{ form[field_name].label }}: {{ error }}</li>
+                {% endfor %}
+            {% endfor %}
+          </ul>
+          {% endif %}
+        </div>
+      </div>
+      <div class="col-sm-12">
+        <div class="col-sm-3 col-sm-offset-2">
+          <a href="{{cancel_url}}" class="btn btn-default btn-lg btn-block" role="button" title="Cancel">Cancel</a>
+        </div>
+        <div class="col-sm-3 col-sm-offset-2">
+          <input type="submit" value="{{submit_text}}" class="btn btn-primary btn-lg btn-block" title="{{submit_title}}">
+        </div>
+      </div>
     </form>
   </div>
+</div>
 {% endblock %}

@@ -62,17 +62,21 @@
                   name="search_term"
                   placeholder="Find a venue"
                   aria-label="Search">
-              </form>
+                  {# https://flask-wtf.readthedocs.io/en/v0.12/csrf.html #}
+                  <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
+                </form>
               {% endif %}
               {% if (request.endpoint == 'artists') or
                 (request.endpoint == 'search_artists') or
                 (request.endpoint == 'show_artist') %}
-              <form class="search" method="post" action="/artists/search">
+              <form class="search" method="post" action="/artists/search?mode=basic">
                 <input class="form-control"
                   type="search"
                   name="search_term"
                   placeholder="Find an artist"
                   aria-label="Search">
+                  {# https://flask-wtf.readthedocs.io/en/v0.12/csrf.html #}
+                  <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
               </form>
               {% endif %}
             </li>
@@ -117,6 +121,32 @@
   <script>window.jQuery || document.write('<script type="text/javascript" src="/static/js/libs/jquery-1.11.1.min.js"><\/script>')</script>
   <script type="text/javascript" src="/static/js/libs/bootstrap-3.1.1.min.js" defer></script>
   <script type="text/javascript" src="/static/js/plugins.js" defer></script>
+  <script type="text/javascript">
+    var csrf_token = "{{ csrf_token() }}";
 
+    $.ajaxSetup({
+        beforeSend: function(xhr, settings) {
+            if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type) && !this.crossDomain) {
+                xhr.setRequestHeader("X-CSRFToken", csrf_token);
+            }
+        }
+    });
+  </script>
+
+  <!-- datepicker related
+    see https://www.npmjs.com/package/jquery-datetimepicker -->
+  <link rel="stylesheet" type="text/css" href="/static/css/jquery.datetimepicker.min.css"/>
+  <script src="/static/js/libs/jquery.datetimepicker.full.min.js"></script>
+  <script>
+    jQuery.datetimepicker.setLocale('en');
+    jQuery('.dtpick').datetimepicker({
+      format:'Y-m-d H:i'
+    });
+    jQuery('.tpick').datetimepicker({
+      datepicker:false,
+      format:'H:i'
+    });
+  </script>
+  
 </body>
 </html>

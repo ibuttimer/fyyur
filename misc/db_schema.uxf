@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="14.3.0">
+  <zoom_level>10</zoom_level>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>0</x>
+      <y>80</y>
+      <w>270</w>
+      <h>310</h>
+    </coordinates>
+    <panel_attributes>Availability
+--
+id: interger [PK]
+artist_id: integer [FK]
+from_date: timestamp without timezone
+mon_from: time without timezone
+mon_to: time without timezone
+tue_from: time without timezone
+tue_to: time without timezone
+wed_from: time without timezone
+wed_to: time without timezone
+thu_from: time without timezone
+thu_to: time without timezone
+fri_from: time without timezone
+fri_to: time without timezone
+sat_from: time without timezone
+sat_to: time without timezone
+sun_from: time without timezone
+sun_to
+
+bg=#AED6F1</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>350</x>
+      <y>80</y>
+      <w>210</w>
+      <h>200</h>
+    </coordinates>
+    <panel_attributes>Artist
+--
+id: interger [PK]
+name: string
+city: string
+state: string
+phone: string
+website: string
+facebook_link: string
+image_link: string
+seeking_venue: boolean
+seeking_description: string
+bg=orange</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>350</x>
+      <y>320</y>
+      <w>210</w>
+      <h>210</h>
+    </coordinates>
+    <panel_attributes>Venue
+--
+id: interger [PK]
+name: string
+address: string
+city: string
+state: string
+phone: string
+website: string
+facebook_link: string
+image_link: string
+seeking_talent: boolean
+seeking_description: string
+bg=blue</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>680</x>
+      <y>80</y>
+      <w>260</w>
+      <h>120</h>
+    </coordinates>
+    <panel_attributes>Show
+--
+id: interger [PK]
+venue_id: integer [FK]
+artist_id: integer [FK]
+start_time: timestamp without timezone
+duration: integer
+bg=green</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>680</x>
+      <y>260</y>
+      <w>210</w>
+      <h>70</h>
+    </coordinates>
+    <panel_attributes>artist_genres
+--
+artist_id: integer [FK]
+genre_id: integer [FK]
+bg=#C39BD3</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>980</x>
+      <y>330</y>
+      <w>180</w>
+      <h>70</h>
+    </coordinates>
+    <panel_attributes>Genres
+--
+id: interger [PK]
+name: string
+bg=red</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>680</x>
+      <y>410</y>
+      <w>210</w>
+      <h>70</h>
+    </coordinates>
+    <panel_attributes>venue_genres
+--
+venue_id: integer [FK]
+genre_id: integer [FK]
+bg=yellow</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>550</x>
+      <y>340</y>
+      <w>150</w>
+      <h>130</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+m1=0..n</panel_attributes>
+    <additional_attributes>130.0;100.0;70.0;100.0;70.0;10.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>880</x>
+      <y>350</y>
+      <w>120</w>
+      <h>140</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+m1=0..n</panel_attributes>
+    <additional_attributes>10.0;110.0;80.0;110.0;80.0;10.0;100.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>880</x>
+      <y>300</y>
+      <w>120</w>
+      <h>80</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+m1=0..n</panel_attributes>
+    <additional_attributes>10.0;10.0;80.0;10.0;80.0;60.0;100.0;60.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>550</x>
+      <y>100</y>
+      <w>150</w>
+      <h>220</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+m1=0..n</panel_attributes>
+    <additional_attributes>130.0;190.0;40.0;190.0;40.0;10.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>550</x>
+      <y>120</y>
+      <w>150</w>
+      <h>250</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+m1=0..n</panel_attributes>
+    <additional_attributes>130.0;10.0;70.0;10.0;70.0;230.0;10.0;230.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>550</x>
+      <y>100</y>
+      <w>150</w>
+      <h>80</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+m1=0..n</panel_attributes>
+    <additional_attributes>130.0;50.0;40.0;50.0;40.0;10.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>260</x>
+      <y>100</y>
+      <w>110</w>
+      <h>60</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+m1=0..n</panel_attributes>
+    <additional_attributes>10.0;30.0;50.0;30.0;50.0;10.0;90.0;10.0</additional_attributes>
+  </element>
+</diagram>
