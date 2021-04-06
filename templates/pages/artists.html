@@ -1,39 +1,7 @@
 {% extends 'layouts/main.html' %}
 {% block title %}{{title}}{% endblock %}
 {% block content %}
-{% if (request.endpoint == 'search_artists_advanced') %}
-	<div class="form-wrapper col-sm-12">
-		<form method="post" class="form" action="/artists/advanced_search">
-			{{ form.hidden_tag() }}
-			<div class="form-group col-sm-12">
-				<div class="form-group col-sm-3">
-					<label>Name</label>
-					{{ form.name(class_ = 'form-control', placeholder='Name', autofocus = true) }}
-				</div>
-				<div class="form-group col-sm-3">
-					<label>City</label>
-					{{ form.city(class_ = 'form-control', placeholder='City', autofocus = true) }}
-				</div>
-				<div class="form-group col-sm-3">
-					<label>State</label>
-					{{ form.state(class_ = 'form-control', placeholder='State', autofocus = true) }}
-				</div>
-				<div class="form-group col-sm-2">
-					<input type="submit" value="Search" class="btn btn-primary btn-sm" title="Search">
-				</div>
-			</div>
-		</form>
-	</div>
-{% else %}
-	<div class="col-sm-12">
-		<a href="/artists/advanced_search"><button class="btn btn-primary btn-sm col-sm-offset-10">Advanced Search</button></a>
-	</div>
-{% endif %}
-{% if (results.mode == 'basic') or (results.mode == 'advanced') %}
-	<div class="col-sm-12">
-		<h3>Number of search results for "{{results.search_term}}": {{results.count}}</h3>
-	</div>
-{% endif %}
+{% include 'pages/advanced_search.html' %}
 <div class="col-sm-12">
 	<ul class="items">
 		{% for artist in results.data %}

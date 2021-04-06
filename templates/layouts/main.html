@@ -56,7 +56,7 @@
               {% if (request.endpoint == 'venues') or
                 (request.endpoint == 'search_venues') or
                 (request.endpoint == 'show_venue') %}
-              <form class="search" method="post" action="/venues/search">
+              <form class="search" method="post" action="/venues/search?mode=basic">
                 <input class="form-control"
                   type="search"
                   name="search_term"
@@ -74,6 +74,18 @@
                   type="search"
                   name="search_term"
                   placeholder="Find an artist"
+                  aria-label="Search">
+                  {# https://flask-wtf.readthedocs.io/en/v0.12/csrf.html #}
+                  <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
+              </form>
+              {% endif %}
+              {% if (request.endpoint == 'shows') or
+                (request.endpoint == 'search_shows') %}
+              <form class="search" method="post" action="/shows/search?mode=basic">
+                <input class="form-control"
+                  type="search"
+                  name="search_term"
+                  placeholder="Find a show"
                   aria-label="Search">
                   {# https://flask-wtf.readthedocs.io/en/v0.12/csrf.html #}
                   <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
@@ -149,4 +161,3 @@
   </script>
   
 </body>
-</html>

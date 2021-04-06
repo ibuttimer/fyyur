@@ -1,11 +1,16 @@
 {% extends 'layouts/main.html' %}
-{% block title %}Fyyur | Shows{% endblock %}
+{% block title %}{{title}}{% endblock %}
 {% block content %}
+
+{% include 'pages/advanced_search.html' %}
+
 <div class="row shows">
-    {%for show in shows %}
+    {%for show in results.data %}
     <div class="col-sm-4">
         <div class="tile tile-show">
-            <img id="image{{loop.index0}}" src="{{show.artist_image_link}}" alt="Artist Image" />
+            <a id="img_link{{loop.index0}}" href="/artists/{{show.artist_id}}">
+                <img id="image{{loop.index0}}" src="{{show.artist_image_link}}" alt="Artist Image" />
+            </a>
             <h4 id="starttime{{loop.index0}}">{{ show.start_time|datetime('full') }}</h4>
             <h5>
                 <a id="artist_link{{loop.index0}}" href="/artists/{{show.artist_id}}">
@@ -22,40 +27,42 @@
     </div>
     {% endfor %}
 </div>
-<!-- Pagination Links 
-    based on https://betterprogramming.pub/simple-flask-pagination-example-4190b12c2e2e -->
-<div class="text-right">
-    <a href="{{ url_for('shows', page=pagination.prev_num) }}"
-       class="btn btn-default 
-       {% if pagination.page == 1 %}disabled{% endif %}">
-        &laquo;
-    </a>
-    <!-- Loop through the number of pages to display a link for each-->
-    {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
-        {% if page_num %}
-            <!-- Check for the active page and set the link to "Active"-->
-            {% if pagination.page == page_num %}
-                <a href="{{ url_for('shows', page=page_num) }}"
-                class="btn btn-warning">
-                    {{ page_num }}
-                </a>
+{% if results.pagination and (results.pagination.total > 0)%}
+    <!-- Pagination Links
+        based on https://betterprogramming.pub/simple-flask-pagination-example-4190b12c2e2e -->
+    <div class="text-right">
+        <a href="{{ url_for(results.pagination_url, page=results.pagination.prev_num, pagination='y') }}"
+           class="btn btn-default
+           {% if results.pagination.page == 1 %}disabled{% endif %}">
+            &laquo;
+        </a>
+        <!-- Loop through the number of pages to display a link for each-->
+        {% for page_num in results.pagination.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+            {% if page_num %}
+                <!-- Check for the active page and set the link to "Active"-->
+                {% if results.pagination.page == page_num %}
+                    <a href="{{ url_for(results.pagination_url, page=page_num, pagination='y') }}"
+                    class="btn btn-warning">
+                        {{ page_num }}
+                    </a>
+                {% else %}
+                    <a href="{{ url_for(results.pagination_url, page=page_num, pagination='y') }}"
+                    class="btn btn-default">
+                        {{ page_num }}
+                    </a>
+                {% endif %}
             {% else %}
-                <a href="{{ url_for('shows', page=page_num) }}"
-                class="btn btn-default">
-                    {{ page_num }}
-                </a>
+                ...
             {% endif %}
-        {% else %}
-            ...
-        {% endif %}
-    {% endfor %}
-    <a href="{{ url_for('shows', page=pagination.next_num) }}"
-       class="btn btn-default 
-       {% if pagination.page == pagination.pages %}disabled{% endif %}">
-        &raquo;
-    </a>
-</div>
-<p class="text-right mt-3">
-   Showing page {{ pagination.page }} of {{ pagination.pages }}
-</p>
+        {% endfor %}
+        <a href="{{ url_for(results.pagination_url, page=results.pagination.next_num, pagination='y') }}"
+           class="btn btn-default
+           {% if results.pagination.page == results.pagination.pages %}disabled{% endif %}">
+            &raquo;
+        </a>
+    </div>
+    <p class="text-right mt-3">
+       Showing page {{ results.pagination.page }} of {{ results.pagination.pages }}
+    </p>
+{% endif %}
 {% endblock %}

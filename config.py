@@ -29,6 +29,9 @@ SHOWS_PER_PAGE = 6
 # default region for phone number validation
 DEFAULT_REGION = "US"
 
+# default locale
+DEFAULT_LOCALE = 'en_US'
+
 # max number of latest listings on home page
 NUM_LATEST_ON_HOME = 10
 

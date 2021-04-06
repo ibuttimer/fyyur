@@ -62,6 +62,8 @@ STATE_CHOICES = [
     ('WI', 'WI'),
     ('WY', 'WY'),
 ]
+# sort by state name
+STATE_CHOICES.sort(key=lambda s: s[1])
 # choices for possible states with unselected option
 STATE_CHOICES_WITH_SEL = STATE_CHOICES.copy()
 STATE_CHOICES_WITH_SEL.insert(0, ('none', 'Select state'))
@@ -70,18 +72,19 @@ STATES = [s[0] for s in STATE_CHOICES]
 
 OTHER_DURATION = -1
 DURATION_CHOICES = [
-    (30, "\N{Vulgar Fraction One Half} hour"), 
-    (60, "1 hour"), 
+    (30, "\N{Vulgar Fraction One Half} hour"),
+    (60, "1 hour"),
     (90, "1\N{Vulgar Fraction One Half} hours"),
     (120, "2 hours"),
     (OTHER_DURATION, "Other")
 ]
 
+
 def validate_phone(form, field):
-    '''
+    """
     Validate phone numbers
     See https://pypi.org/project/phonenumbers/
-    '''
+    """
     try:
         input_number = phonenumbers.parse(field.data, get_config("DEFAULT_REGION"))
         if not phonenumbers.is_valid_number(input_number):
@@ -90,13 +93,15 @@ def validate_phone(form, field):
     except:
         raise ValidationError('Invalid phone number.')
 
+
 class ValidateTimeFields(object):
-    '''
+    """
     Validate the two time fields
-    from_field: start time field
-    to_field:   end time field
-    message:    validation error message
-    '''
+    :param from_field: start time field
+    :param to_field:   end time field
+    :param message:    validation error message
+    """
+
     def __init__(self, from_field=None, to_field=None, message=None):
         self.from_field = from_field
         self.to_field = to_field
@@ -108,27 +113,27 @@ class ValidateTimeFields(object):
         from_time = self.from_field.data
         to_time = self.to_field.data
         if from_time == ZERO_AM:
-            pass    # available from start of day
+            pass  # available from start of day
         elif to_time == MIDNIGHT:
-            pass    # available until midnight
+            pass  # available until midnight
         elif to_time <= from_time:
             raise ValidationError(self.message)
 
 
 class ValidateDateTime(object):
-    '''
+    """
     Validate a date time field
-    min:        min datetime allowed, or a value of FIELD_DEFAULT uses the field default value
-    max:        max datetime allowed, or a value of FIELD_DEFAULT uses the field default value
-    format:     datetime format for error message
-    message:    validation error message
-    '''
+    :param min_dt:     min datetime allowed, or a value of FIELD_DEFAULT uses the field default value
+    :param max_dt:     max datetime allowed, or a value of FIELD_DEFAULT uses the field default value
+    :param dt_format:  datetime format for error message
+    :param message:    validation error message
+    """
     FIELD_DEFAULT = 'default'
 
-    def __init__(self, min=datetime.min, max=datetime.max, format=None, message=None):
-        self.min = min
-        self.max = max
-        self.format = format
+    def __init__(self, min_dt=datetime.min, max_dt=datetime.max, dt_format=None, message=None):
+        self.min = min_dt
+        self.max = max_dt
+        self.format = dt_format
         self.message = message
 
     def __call__(self, form, field):
@@ -140,7 +145,7 @@ class ValidateDateTime(object):
             max_time = field.default
         else:
             max_time = self.max
-        
+
         min_ng = field.data < min_time
         max_ng = field.data > max_time
         if min_ng or max_ng:
@@ -169,11 +174,13 @@ APP_DATE_FMT = '%Y-%m-%d'
 APP_TIME_FMT = '%H:%M'
 APP_DATETIME_FMT = APP_DATE_FMT + ' ' + APP_TIME_FMT
 
+
 class AppTimeField(TimeField):
     """
     Same as TimeField, except uses last value entered to determine time
     """
-    # TimeField extends from DateTimeField and gets a list of initial & edited 
+
+    # TimeField extends from DateTimeField and gets a list of initial & edited
     # values as the valuelist to process which results in conversion errors
     def __init__(self, label=None, validators=None, format='%H:%M', **kwargs):
         super(AppTimeField, self).__init__(label, validators, format, **kwargs)
@@ -186,6 +193,7 @@ class AppTimeField(TimeField):
             except ValueError:
                 self.data = None
                 raise ValueError(self.gettext('Not a valid time value'))
+
 
 #
 # Note: form field names must match model field names, this is to allow population of
@@ -204,9 +212,9 @@ class ShowForm(FlaskForm):
         choices=[]
     )
     start_time = DateTimeField(
-        'Start time', 
-        validators=[InputRequired(), 
-                        ValidateDateTime(min=ValidateDateTime.FIELD_DEFAULT, format=APP_DATETIME_FMT)],
+        'Start time',
+        validators=[InputRequired(),
+                    ValidateDateTime(min_dt=ValidateDateTime.FIELD_DEFAULT, dt_format=APP_DATETIME_FMT)],
         format=APP_DATETIME_FMT,
         default=current_datetime()
     )
@@ -220,11 +228,11 @@ class ShowForm(FlaskForm):
         format=APP_TIME_FMT
     )
 
-    def validate_duration(form, field):
+    def validate_duration(self, field):
         if field.data == OTHER_DURATION:
-            form.other_duration.validators=[InputRequired()]
+            self.other_duration.validators = [InputRequired()]
         else:
-            form.other_duration.validators=[Optional()]
+            self.other_duration.validators = [Optional()]
 
 
 class VenueForm(FlaskForm):
@@ -253,7 +261,7 @@ class VenueForm(FlaskForm):
     # choices & validators need to be set dynamically in controller
     genres = SelectMultipleField(
         'genres', validators=[InputRequired()],
-        choices = []
+        choices=[]
     )
     facebook_link = StringField(
         'facebook_link', validators=[Optional(), URL()]
@@ -270,8 +278,8 @@ AVAILABILITY_FROM_DATE_FMT = APP_DATETIME_FMT
 AVAILABILITY_DATE_FMT = APP_DATE_FMT
 AVAILABILITY_TIME_FMT = APP_TIME_FMT
 
-class ArtistForm(FlaskForm):
 
+class ArtistForm(FlaskForm):
     name = StringField(
         'name', validators=[InputRequired()]
     )
@@ -294,7 +302,7 @@ class ArtistForm(FlaskForm):
     # choices & validators need to be set dynamically in controller
     genres = SelectMultipleField(
         'genres', validators=[InputRequired()],
-        choices = []
+        choices=[]
     )
     facebook_link = StringField(
         'facebook_link', validators=[Optional(), URL()]
@@ -307,9 +315,9 @@ class ArtistForm(FlaskForm):
     )
 
     from_date = DateTimeField(
-        'From time', 
-        validators=[InputRequired(), 
-                        ValidateDateTime(min=ValidateDateTime.FIELD_DEFAULT, format=AVAILABILITY_FROM_DATE_FMT)],
+        'From time',
+        validators=[InputRequired(),
+                    ValidateDateTime(min_dt=ValidateDateTime.FIELD_DEFAULT, dt_format=AVAILABILITY_FROM_DATE_FMT)],
         format=AVAILABILITY_FROM_DATE_FMT,
         default=current_datetime()
     )
@@ -370,40 +378,40 @@ class ArtistForm(FlaskForm):
         format=AVAILABILITY_TIME_FMT,
     )
 
-    def validate_mon_from(form, field):
-        validate_from_to_fields(field, form.mon_to)
+    def validate_mon_from(self, field):
+        validate_from_to_fields(field, self.mon_to)
 
-    def validate_tue_from(form, field):
-        validate_from_to_fields(field, form.tue_to)
+    def validate_tue_from(self, field):
+        validate_from_to_fields(field, self.tue_to)
 
-    def validate_wed_from(form, field):
-        validate_from_to_fields(field, form.wed_to)
+    def validate_wed_from(self, field):
+        validate_from_to_fields(field, self.wed_to)
 
-    def validate_thu_from(form, field):
-        validate_from_to_fields(field, form.thu_to)
+    def validate_thu_from(self, field):
+        validate_from_to_fields(field, self.thu_to)
 
-    def validate_thu_from(form, field):
-        validate_from_to_fields(field, form.thu_to)
+    def validate_fri_from(self, field):
+        validate_from_to_fields(field, self.fri_to)
 
-    def validate_sat_from(form, field):
-        validate_from_to_fields(field, form.sat_to)
+    def validate_sat_from(self, field):
+        validate_from_to_fields(field, self.sat_to)
 
-    def validate_sun_from(form, field):
-        validate_from_to_fields(field, form.sun_to)
+    def validate_sun_from(self, field):
+        validate_from_to_fields(field, self.sun_to)
 
 
 # from_time of 00:00 is considered start of day and to_time of 00:00 is considered midnight
 ZERO_AM = time(hour=0, minute=0)
 MIDNIGHT = time(hour=0, minute=0)
 
-def validate_from_to_fields(from_field, to_field):
-    if from_field.data == None:
-        from_field.validators=[Optional()]
-        to_field.validators=[Optional()]
-    else:
-        from_field.validators=[InputRequired()]
-        to_field.validators=[InputRequired(), ValidateTimeFields(from_field=from_field, to_field=to_field)]
 
+def validate_from_to_fields(from_field, to_field):
+    if from_field.data is None:
+        from_field.validators = [Optional()]
+        to_field.validators = [Optional()]
+    else:
+        from_field.validators = [InputRequired()]
+        to_field.validators = [InputRequired(), ValidateTimeFields(from_field=from_field, to_field=to_field)]
 
 
 class NCSSearchForm(FlaskForm):
@@ -415,11 +423,5 @@ class NCSSearchForm(FlaskForm):
     )
     state = SelectField(
         'state', validators=[Optional(), AnyOf(STATES)],
-        choices = STATE_CHOICES_WITH_SEL
+        choices=STATE_CHOICES_WITH_SEL
     )
-
-
-
-
-
-

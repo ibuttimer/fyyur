@@ -1,20 +1,11 @@
-from http import HTTPStatus
-from flask import abort
+from typing import Union, Any
+
+from flask_sqlalchemy import Model
+from flask_wtf import FlaskForm
+from wtforms import SelectMultipleField, SelectField
 from wtforms.validators import AnyOf, InputRequired, ValidationError
 
-from models import Genre
-from misc import get_config, print_exc_info
-
-# from sqlalchemy import in_
-if get_config("USE_ORM"):
-  from models import Genre
-  ORM = True
-else:
-  from engine import execute
-  from models import GENRES_TABLE
-  ORM = False
-
-ENGINE = not ORM
+from misc import get_genre_list
 
 
 class OneOrMoreOf(AnyOf):
@@ -29,6 +20,10 @@ class OneOrMoreOf(AnyOf):
     :param values_formatter:
         Function used to format the list of values in the error message.
     """
+
+    def __init__(self, values, message=None, values_formatter=None):
+        super().__init__(values, message, values_formatter)
+
     def __call__(self, form, field):
         valid = 0
         for sel in field.data:
@@ -43,94 +38,86 @@ class OneOrMoreOf(AnyOf):
             raise ValidationError(message % dict(values=self.values_formatter(self.values)))
 
 
-def populate_model(model, form, attributes):
-  '''
-  Populate a model from a form
-  '''
-  if ORM:
-    # can't use form.populate_obj(model) as get no attribute error '_sa_instance_state'
-    for a in attributes:
-      model.__setattr__(a, form[a].data)
-  else: # ENGINE
-    for a in attributes:
-      model[a] = form[a].data
-  return model
+def populate_model(model: Union[Model, dict], form: FlaskForm, properties: list):
+    """
+    Populate a model from a form
+    :param model:       entity to populate
+    :param form:        form to populate from
+    :param properties:  list of properties to populate
+    """
+    if isinstance(model, dict):
+        for a in properties:
+            model[a] = form[a].data
+    else:
+        # can't use form.populate_obj(model) as get no attribute error '_sa_instance_state'
+        for a in properties:
+            model.__setattr__(a, form[a].data)
+    return model
 
 
-def get_genre_list(names: list):
-  '''
-  Get the genres corresponding to the specified list
-  '''
-  try:
-    if ORM:
-      return Genre.query.filter(Genre.name.in_(names)).all()
-    else: # ENGINE
-      in_list = ["'"+g+"'" for g in names]
-      in_list = ", ".join(in_list)
-
-      # genres is list of names
-      genres = execute(f'SELECT * FROM "{GENRES_TABLE}" where "{GENRES_TABLE}".name in ({in_list});')
-      keys = [k for k in genres.keys()]
-      results = [g for g in genres]
-      genres = [g['name'] for g in results]
-      genre_objs = [{k: g[k] for k in keys} for g in results]
-
-      return genres, genre_objs
-  except:
-      print_exc_info()
-      abort(HTTPStatus.INTERNAL_SERVER_ERROR.value)
+def populate_model_property(model: Union[Model, dict], prop: str, value: Any):
+    """
+    Populate a model property from a form
+    :param model:   entity to populate
+    :param prop:    property to populate
+    :param value:   value to set
+    """
+    if isinstance(model, dict):
+        model[prop] = value
+    else:
+        model.__setattr__(prop, value)
+    return model
 
 
-def populate_genred_model(model, form, attributes):
-  '''
-  Populate a model with genres from a form
-  '''
-  populate_model(model, form, attributes)
-  if ORM:
-    model.genres = get_genre_list(form["genres"].data)
-  else: # ENGINE
-    genres, genre_objs = get_genre_list(form["genres"].data)
-    model["genres"] = genres
-    model["__genre_objs"] = genre_objs
-
-  return model
+def populate_genred_model(model: Union[Model, dict], form: FlaskForm, properties: list):
+    """
+    Populate a model with genres from a form
+    :param model:       entity to populate
+    :param form:        form to populate from
+    :param properties:  list of properties to populate
+    """
+    populate_model(model, form, properties)
+    genres = get_genre_list(form["genres"].data)
+    populate_model_property(model, "genres", genres)
+    return model
 
 
-def set_select_field_options(field, choices, validator, data):
-  '''
-  Set the options for a WTForms field
-  field:      field to set options on
-  choices:    possible options
-  validator:  additional validator
-  data:       value to set
-  '''
-  field.choices = choices
-  field.validators = [InputRequired(), validator]
-  if isinstance(data, list):
-    field.process_formdata(data)
-  else:
-    field.process_data(data)
+def set_select_field_options(field: Union[SelectMultipleField, SelectField], choices: Union[list, Any],
+                             validator: object, data: Any):
+    """
+    Set the options for a WTForms field
+    :param field:      field to set options on
+    :param choices:    possible options
+    :param validator:  additional validator
+    :param data:       value to set
+    """
+    field.choices = choices
+    field.validators = [InputRequired(), validator]
+    if isinstance(data, list):
+        field.process_formdata(data)
+    else:
+        field.process_data(data)
 
 
-def set_singleselect_field_options(field, choices, values, data):
-  '''
-  Set the options for a single select WTForms field
-  field:      field to set options on
-  choices:    possible options
-  validator:  additional validator
-  data:       value to set
-  '''
-  set_select_field_options(field, choices, 
-          AnyOf(values, message="Please select a value from the list"), data)
+def set_singleselect_field_options(field: SelectField, choices: Union[list, Any], values: list, data: Any):
+    """
+    Set the options for a single select WTForms field
+    :param field:      field to set options on
+    :param choices:    possible options
+    :param values:     A sequence of valid inputs.
+    :param data:       value to set
+    """
+    set_select_field_options(field, choices,
+                             AnyOf(values, message="Please select a value from the list"), data)
 
 
-def set_multiselect_field_options(field, choices, values, data):
-  '''
-  Set the options for a multi select WTForms field
-  field:      field to set options on
-  choices:    possible options
-  validator:  additional validator
-  data:       value to set
-  '''
-  set_select_field_options(field, choices, 
-          OneOrMoreOf(values, message="Please select one or more values from the list"), data)
+def set_multiselect_field_options(field: SelectMultipleField, choices: Union[list, Any], values: list, data: Any):
+    """
+    Set the options for a multi select WTForms field
+    :param field:      field to set options on
+    :param choices:    possible options
+    :param values:     A sequence of valid inputs.
+    :param data:       value(s) to set
+    """
+    set_select_field_options(field, choices,
+                             OneOrMoreOf(values, message="Please select one or more values from the list"), data)

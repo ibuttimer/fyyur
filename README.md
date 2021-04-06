@@ -56,17 +56,25 @@ Our tech stack will include the following:
  * **PostgreSQL** as our database of choice
  * **Python3** and **Flask** as our server language and server framework
  * **Flask-Migrate** for creating and running schema migrations
-You can download and install the dependencies mentioned above using `pip` as:
+
+You can download and install the dependencies mentioned above using `pip`:
+   
+ * Install virtualenv 
+> **Note** - If we do not mention the specific version of a package, then by default the latest stable package will be installed. 
+
 ```shell
 pip install virtualenv
+```
+> **Note** - If using a virtualenv, SQLAlchemy etc. should be installed after the [Initialize and activate a virtualenv](#3-initialize-and-activate-a-virtualenv) step in [Development Setup](#development-setup).
+
+* [Initialize and activate a virtualenv](#3-initialize-and-activate-a-virtualenv)
+* Install the other backend dependencies
+```shell
 pip install SQLAlchemy
 pip install postgres
 pip install Flask
 pip install Flask-Migrate
 ```
-> **Note** - If we do not mention the specific version of a package, then the default latest stable package will be installed. 
-
-> **Note** - If using a virtualenv, SQLAlchemy etc. should be installed after the *Initialize and activate a virtualenv* step in [Development Setup](#development-setup).
 
 ### 2. Frontend Dependencies
 You must have the **HTML**, **CSS**, and **Javascript** with [Bootstrap 3](https://getbootstrap.com/docs/3.4/customize/) for our website's frontend. Bootstrap can only be installed by Node Package Manager (NPM). Therefore, if not already, download and install the [Node.js](https://nodejs.org/en/download/). Windows users must run the executable as an Administrator, and restart the computer after installation. After successfully installing the Node, verify the installation as shown below.
@@ -206,7 +214,7 @@ source env/bin/activate
 ```
 >**Note** - In Windows, the `env` does not have a `bin` directory. Therefore, you'd use the analogous command shown below:
 ```shell
-env/Scripts/activate
+env\Scripts\activate
 ```
 
 #### 4. Install the dependencies:
@@ -251,7 +259,9 @@ Navigate to project homepage [http://127.0.0.1:5000/](http://127.0.0.1:5000/) or
 
 * Show listing conflict functionality has been implemented to prevent the listing of a show if venue or artist unavailability arises.
 
-* Three search modes are implemented for artists and venues:
+* Search has been implemented for shows, matching either venue or artist details.
+
+* Three search modes has been implemented:
   * *Basic*
 
     Name/partial name search from the search box in the page header.
@@ -262,13 +272,13 @@ Navigate to project homepage [http://127.0.0.1:5000/](http://127.0.0.1:5000/) or
   
   * *Advanced*
 
-    Available from the artists and venues pages by clicking on `Advanced Search`. Allows searching by any combination of name/partial name, city/partial city and state.
+    Available from the artists/venues/shows pages by clicking on `Advanced Search`. Allows searching by any combination of name/partial name, city/partial city and state.
 
 * Recently listed artists and venues are available on the homepage.
 
 ### Database schema
 The following database schema has been implemented:
-![Database schema](misc/db_schema.jpg)
+![Database schema](doc/db_schema.jpg)
 
 ### Database setup
 #### Configuration
@@ -290,11 +300,11 @@ Once a blank database, as specified in [Database setup](#database-setup) is avai
 * Open a terminal in the project root folder and activate the project python environment, see [Initialize and activate a virtualenv](#3-initialize-and-activate-a-virtualenv).
 * Run the command `flask db upgrade` or `python -m flask db upgrade` 
 
-  This will configure the database to the state required by the application, using the script [c55ec6b7a0a1_.py](migrations/versions/c55ec6b7a0a1_.py).
+  This will configure the database to the state corresponding to the base code, using the script [c55ec6b7a0a1_.py](migrations/versions/c55ec6b7a0a1_.py).
 
 * Run the command `flask db upgrade` or `python -m flask db upgrade` again
 
-  This will configure the database to the state corresponding to the base code, using the script [f8fe5c0c244c_.py](migrations/versions/f8fe5c0c244c_.py).
+  This will configure the database to the state required by the application, using the script [f8fe5c0c244c_.py](migrations/versions/f8fe5c0c244c_.py).
 
 #### Load sample data
 The sample data as provided in the base code may be loaded using the script [load_initial_data.py](load_initial_data.py)

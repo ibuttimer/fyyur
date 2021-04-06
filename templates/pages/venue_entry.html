@@ -1,0 +1,19 @@
+<li>
+	<a href="/venues/{{venue.id}}"
+		{% if venue.num_upcoming_shows > 0 %}
+			title="{{venue.name}}, {{venue.num_upcoming_shows}} upcoming shows"
+		{% else %}
+			title="{{venue.name}}, no upcoming shows"
+		{% endif %}
+		>
+		<i class="fas fa-building" aria-hidden="true"></i>
+		<div class="item">
+			<h5>{{venue.name}}</h5>
+		</div>
+		&nbsp;
+		<i class="fa fa-music" aria-hidden="true"></i>
+		<div class="item">
+			<h5>{{venue.num_upcoming_shows}}</h5>
+		</div>
+	</a>
+</li>
