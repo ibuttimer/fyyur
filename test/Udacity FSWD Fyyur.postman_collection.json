@@ -2041,8 +2041,12 @@
 							"\r",
 							"start_time = start_time.toISOString();  // expected output: 2011-10-05T14:48:00.000Z\r",
 							"start_time = start_time.slice(0, 10) + ' ' + start_time.slice(11, 16);\r",
+							"duration = \"30\"\r",
+							"\r",
+							"console.log(\"(no artist availability) \"+hour+\":\"+minute+\" - \"+start_time+\" \"+duration)\r",
+							"\r",
 							"pm.collectionVariables.set(\"start_time\", start_time);\r",
-							"pm.collectionVariables.set(\"duration\", \"30\");\r",
+							"pm.collectionVariables.set(\"duration\", duration);\r",
 							"pm.collectionVariables.set(\"other_duration\", \"\");\r",
 							""
 						],
@@ -2186,8 +2190,12 @@
 							"\r",
 							"start_time = start_time.toISOString();  // expected output: 2011-10-05T14:48:00.000Z\r",
 							"start_time = start_time.slice(0, 10) + ' ' + start_time.slice(11, 16);\r",
+							"duration = \"120\"\r",
+							"\r",
+							"console.log(\"(artist start too early) \"+hour+\":\"+minute+\" - \"+start_time+\" \"+duration)\r",
+							"\r",
 							"pm.collectionVariables.set(\"start_time\", start_time);\r",
-							"pm.collectionVariables.set(\"duration\", \"120\");\r",
+							"pm.collectionVariables.set(\"duration\", duration);\r",
 							"pm.collectionVariables.set(\"other_duration\", \"\");\r",
 							""
 						],
@@ -2330,8 +2338,12 @@
 							"\r",
 							"start_time = start_time.toISOString();  // expected output: 2011-10-05T14:48:00.000Z\r",
 							"start_time = start_time.slice(0, 10) + ' ' + start_time.slice(11, 16);\r",
+							"duration = \"120\"\r",
+							"\r",
+							"console.log(\"(end too late for artist) \"+hour+\":\"+minute+\" - \"+start_time+\" \"+duration)\r",
+							"\r",
 							"pm.collectionVariables.set(\"start_time\", start_time);\r",
-							"pm.collectionVariables.set(\"duration\", \"120\");\r",
+							"pm.collectionVariables.set(\"duration\", duration);\r",
 							"pm.collectionVariables.set(\"other_duration\", \"\");\r",
 							""
 						],
@@ -2420,12 +2432,18 @@
 							"hour = parseInt(show_artist_available_to.slice(0,2));\r",
 							"minute = parseInt(show_artist_available_to.slice(3,5));\r",
 							"\r",
-							"start_time.setHours(hour-1, minute); // 1 hr before end\r",
+							"start_time.setHours(hour-2, minute); // 2 hr before end\r",
+							"// adjust to utc\r",
+							"start_time.setTime(start_time.getTime() - (start_time.getTimezoneOffset()*60*1000))\r",
 							"\r",
 							"start_time = start_time.toISOString();  // expected output: 2011-10-05T14:48:00.000Z\r",
 							"start_time = start_time.slice(0, 10) + ' ' + start_time.slice(11, 16);\r",
+							"duration = \"60\"\r",
+							"\r",
+							"console.log(\"(ok) \"+hour+\":\"+minute+\" - \"+start_time+\" \"+duration)\r",
+							"\r",
 							"pm.collectionVariables.set(\"start_time\", start_time);\r",
-							"pm.collectionVariables.set(\"duration\", \"60\");\r",
+							"pm.collectionVariables.set(\"duration\", duration);\r",
 							"pm.collectionVariables.set(\"other_duration\", \"\");\r",
 							""
 						],
@@ -2562,12 +2580,18 @@
 							"hour = parseInt(show_artist_available_to.slice(0,2));\r",
 							"minute = parseInt(show_artist_available_to.slice(3,5));\r",
 							"\r",
-							"start_time.setHours(hour-1, minute); // 1 hr before end\r",
+							"start_time.setHours(hour-2, minute); // 2 hr before end\r",
+							"// adjust to utc\r",
+							"start_time.setTime(start_time.getTime() - (start_time.getTimezoneOffset()*60*1000))\r",
 							"\r",
 							"start_time = start_time.toISOString();  // expected output: 2011-10-05T14:48:00.000Z\r",
 							"start_time = start_time.slice(0, 10) + ' ' + start_time.slice(11, 16);\r",
+							"duration = \"60\"\r",
+							"\r",
+							"console.log(\"(no venue availability) \"+hour+\":\"+minute+\" - \"+start_time+\" \"+duration)\r",
+							"\r",
 							"pm.collectionVariables.set(\"start_time\", start_time);\r",
-							"pm.collectionVariables.set(\"duration\", \"60\");\r",
+							"pm.collectionVariables.set(\"duration\", duration);\r",
 							"pm.collectionVariables.set(\"other_duration\", \"\");\r",
 							"\r",
 							""
@@ -2628,7 +2652,7 @@
 			"response": []
 		},
 		{
-			"name": "Create show (start too early for venue)",
+			"name": "Create show (start too early for artist)",
 			"event": [
 				{
 					"listen": "test",
@@ -2711,8 +2735,12 @@
 							"\r",
 							"start_time = start_time.toISOString();  // expected output: 2011-10-05T14:48:00.000Z\r",
 							"start_time = start_time.slice(0, 10) + ' ' + start_time.slice(11, 16);\r",
+							"duration = \"120\"\r",
+							"\r",
+							"console.log(\"(start too early for artist) \"+hour+\":\"+minute+\" - \"+start_time+\" \"+duration)\r",
+							"\r",
 							"pm.collectionVariables.set(\"start_time\", start_time);\r",
-							"pm.collectionVariables.set(\"duration\", \"120\");\r",
+							"pm.collectionVariables.set(\"duration\", duration);\r",
 							"pm.collectionVariables.set(\"other_duration\", \"\");\r",
 							"\r",
 							""
@@ -2795,7 +2823,7 @@
 							"}\r",
 							"\r",
 							"pm.test(\"Error shown in latest listing\", () => {\r",
-							"    const error = 'Artist availability';\r",
+							"    const error = 'Booking conflict';\r",
 							"    var found = false;\r",
 							"    $('main[id=\"content\"]')\r",
 							"        .find('.alert')\r",
@@ -2850,16 +2878,120 @@
 							"hour = parseInt(show_artist_available_to.slice(0,2));\r",
 							"minute = parseInt(show_artist_available_to.slice(3,5));\r",
 							"\r",
-							"start_time.setHours(hour-1, minute+30); // 1/2 hr before end\r",
+							"start_time.setHours(hour-2, minute+30); // 1.5 hr before end\r",
 							"// adjust to utc\r",
 							"start_time.setTime(start_time.getTime() - (start_time.getTimezoneOffset()*60*1000))\r",
 							"\r",
 							"start_time = start_time.toISOString();  // expected output: 2011-10-05T14:48:00.000Z\r",
 							"start_time = start_time.slice(0, 10) + ' ' + start_time.slice(11, 16);\r",
+							"duration = \"60\"\r",
+							"\r",
+							"console.log(\"(venue start conflict) \"+hour+\":\"+minute+\" - \"+start_time+\" \"+duration)\r",
+							"\r",
+							"pm.collectionVariables.set(\"start_time\", start_time);\r",
+							"pm.collectionVariables.set(\"duration\", duration);\r",
+							"pm.collectionVariables.set(\"other_duration\", \"\");\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "csrf_token",
+							"value": "{{csrf_token}}",
+							"type": "text"
+						},
+						{
+							"key": "artist_id",
+							"value": "{{artist_id}}",
+							"type": "text"
+						},
+						{
+							"key": "venue_id",
+							"value": "{{venue_id}}",
+							"type": "text"
+						},
+						{
+							"key": "start_time",
+							"value": "{{start_time}}",
+							"type": "text"
+						},
+						{
+							"key": "duration",
+							"value": "{{duration}}",
+							"type": "text"
+						},
+						{
+							"key": "other_duration",
+							"value": "{{other_duration}}",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{server_ip}}/shows/create",
+					"host": [
+						"{{server_ip}}"
+					],
+					"path": [
+						"shows",
+						"create"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create show (ok adjacent shows)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Load the HTML response to $\r",
+							"const $ = cheerio.load(pm.response.text());\r",
+							"\r",
+							"pm.test(\"Status code is 200\", () => {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// set start_time to before artist availability, 'yyyy-mm-dd hh:ss'\r",
+							"var start_time = new Date(pm.collectionVariables.get(\"start_time\"));\r",
+							"\r",
+							"show_artist_available_to = pm.collectionVariables.get(\"show_artist_available_to\")\r",
+							"hour = parseInt(show_artist_available_to.slice(0,2));\r",
+							"minute = parseInt(show_artist_available_to.slice(3,5));\r",
+							"\r",
+							"start_time.setHours(hour-1, minute); // 1 hr before end\r",
+							"// adjust to utc\r",
+							"start_time.setTime(start_time.getTime() - (start_time.getTimezoneOffset()*60*1000))\r",
+							"\r",
+							"start_time = start_time.toISOString();  // expected output: 2011-10-05T14:48:00.000Z\r",
+							"start_time = start_time.slice(0, 10) + ' ' + start_time.slice(11, 16);\r",
+							"duration = \"60\"\r",
+							"\r",
+							"console.log(\"(ok adjacent shows) \"+hour+\":\"+minute+\" - \"+start_time+\" \"+duration)\r",
+							"\r",
 							"pm.collectionVariables.set(\"start_time\", start_time);\r",
 							"pm.collectionVariables.set(\"duration\", \"60\");\r",
 							"pm.collectionVariables.set(\"other_duration\", \"\");\r",
-							"\r",
 							""
 						],
 						"type": "text/javascript"
