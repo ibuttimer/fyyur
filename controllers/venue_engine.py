@@ -82,14 +82,14 @@ def populate_venue_engine(venue: dict, form: FlaskForm):
     return populate_genred_model(venue, form, property_list)
 
 
-def update_venue_engine(venue: dict, form: FlaskForm) -> (Union[bool, None], str):
+def update_venue_engine(venue_id: int, form: FlaskForm) -> (Union[bool, None], str):
     """
     Update an venue in ENGINE mode
-    :param venue:   base venue
+    :param venue_id: id of the venue to update
     :param form:    form to update from
     """
     stmts = []
-    venue_id = venue["id"]
+    venue = get_music_entity_engine(venue_id, _VENUE_)
 
     updated_venue = populate_venue_engine(_VENUE_.model_dict(), form)
     if not equal_dict(venue, updated_venue, IGNORE_ID):

@@ -148,15 +148,15 @@ def availability_insert_sql(artist_id: int, availability: dict):
     return f'INSERT INTO "{AVAILABILITY_TABLE}"({properties_list}) VALUES ({values_list});'
 
 
-def update_artist_engine(artist: dict, form: FlaskForm, availability: dict) -> (Union[bool, None], str):
+def update_artist_engine(artist_id: int, form: FlaskForm, availability: dict) -> (Union[bool, None], str):
     """
     Update an artist in ENGINE mode
-    :param artist:          base artist
+    :param artist_id:       id of the artist to update
     :param form:            form to populate from
     :param availability:    artist availability
     """
     stmts = []
-    artist_id = artist["id"]
+    artist = get_music_entity_engine(artist_id, _ARTIST_)
 
     updated_artist = populate_artist_engine(_ARTIST_.model_dict(), form)
     if not equal_dict(artist, updated_artist, IGNORE_ID):
