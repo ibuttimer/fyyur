@@ -6,7 +6,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.sql.expression import text
 
 from config import SQLALCHEMY_DATABASE_URI
-from .app_cfg import get_config
+from util.app_cfg import get_config
 from .common import print_exc_info
 
 engine = None

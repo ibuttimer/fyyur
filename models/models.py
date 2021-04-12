@@ -2,13 +2,13 @@
 # Imports
 # ---------------------------------------------------------------------------- #
 from datetime import timedelta
-from typing import List, Union
+from typing import List, Union, Callable
 
-from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import Date, cast
+from flask_sqlalchemy import SQLAlchemy, Model
+from sqlalchemy import Date, cast, Column
 from sqlalchemy.ext.hybrid import hybrid_property
 
-from .models_misc import MultiDictMixin, model_property_list
+from .models_misc import MultiDictMixin, model_property_list, fq_column
 
 db = SQLAlchemy()
 
@@ -238,6 +238,88 @@ def get_model_property_list(model: str) -> Union[List, None]:
     """
     if model in __PROPERTIES__.keys():
         return __PROPERTIES__[model]
+    else:
+        return None
+
+
+class Entity:
+    """
+    Class representing an entity in both orm and engine form
+    :param orm_model:               ORM model
+    :param eng_table:               Database table name
+    :param object_factory:          function to create new model objects
+    :param orm_genre_link_column:   model/genre link table
+    :param eng_genre_link_table:    model/genre link table name
+    :param eng_genre_link_column:   model/genre link column name
+    :param orm_show_column:         foreign key column in show model linking show and entity
+    :param eng_show_column:         name of foreign key column in show model linking show and entity
+    """
+
+    def __init__(self, orm_model: Model, eng_table: str, object_factory: Callable,
+                 orm_genre_link_column: Column = None, eng_genre_link_table: str = None, eng_genre_link_column: str = None,
+                 orm_show_column: Column = None, eng_show_column: str = None):
+        self.orm_model = orm_model
+        self.eng_table = eng_table
+        self.object_factory = object_factory
+        self.orm_genre_link_column = orm_genre_link_column
+        self.eng_genre_link_table = eng_genre_link_table
+        self.eng_genre_link_column = eng_genre_link_column
+        self.orm_show_column = orm_show_column
+        self.eng_show_column = eng_show_column
+
+    def model(self):
+        """ Get a new sqlalchemy model """
+        return self.object_factory()
+
+    def model_dict(self):
+        """ Get a new model dict """
+        return new_model_dict(self.eng_table)
+
+    def fq_genre_link(self):
+        return fq_column(self.eng_genre_link_table, self.eng_genre_link_column) \
+            if self.eng_genre_link_column is not None else None
+
+    def fq_show_column(self):
+        return fq_column(SHOWS_TABLE, self.eng_show_column) \
+            if self.eng_show_column is not None else None
+
+    def fq_id(self):
+        return fq_column(self.eng_table, "id")
+
+    def fq_column(self, column: str):
+        return fq_column(self.eng_table, column)
+
+
+__ENTITIES__ = {
+    VENUE_TABLE: Entity(Venue, VENUE_TABLE, lambda: Venue(),
+                        orm_genre_link_column=venue_genres.columns.get('venue_id'),
+                        eng_genre_link_table=VENUE_GENRES_TABLE,
+                        eng_genre_link_column='venue_id',
+                        orm_show_column=Show.venue_id, eng_show_column='venue_id'),
+    ARTIST_TABLE: Entity(Artist, ARTIST_TABLE, lambda: Artist(),
+                         orm_genre_link_column=artist_genres.columns.get('artist_id'),
+                         eng_genre_link_table=ARTIST_GENRES_TABLE,
+                         eng_genre_link_column='artist_id',
+                         orm_show_column=Show.artist_id, eng_show_column='artist_id'),
+    VENUE_GENRES_TABLE: Entity(venue_genres, VENUE_GENRES_TABLE, None,
+                               orm_genre_link_column=venue_genres.columns.get('genre_id'),
+                               eng_genre_link_column='genre_id'),
+    ARTIST_GENRES_TABLE: Entity(artist_genres, ARTIST_GENRES_TABLE, None,
+                                orm_genre_link_column=artist_genres.columns.get('genre_id'),
+                                eng_genre_link_column='genre_id'),
+    SHOWS_TABLE: Entity(Show, SHOWS_TABLE, lambda: Show()),
+    GENRES_TABLE: Entity(Genre, GENRES_TABLE, lambda: Genre()),
+    AVAILABILITY_TABLE: Entity(Availability, AVAILABILITY_TABLE, lambda: Availability()),
+}
+
+
+def get_entity(model: str) -> Union[Entity, None]:
+    """
+    Generate a list of all the property names for the specified model
+    :param model:  the table name of the required model; one of VENUE_TABLE etc.
+    """
+    if model in __ENTITIES__.keys():
+        return __ENTITIES__[model]
     else:
         return None
 

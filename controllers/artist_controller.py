@@ -8,16 +8,16 @@ from flask import render_template, request, flash, url_for, jsonify, Markup
 from flask_sqlalchemy.model import Model
 from werkzeug.datastructures import MultiDict
 
+from config import USE_ORM
 from forms import (ArtistForm, NCSSearchForm)
-from misc import current_datetime, EntityResult
-from models import is_available_time_key, model_items
+from misc import EntityResult
 from misc.queries import artists_search, SEARCH_ALL, SEARCH_BASIC, SEARCH_ADVANCED
-from .artist_orm import IGNORE_AVAILABILITY
+from models import is_available_time_key, model_items
+from util import current_datetime
 from .artist_engine import datetime_to_str, time_to_str
+from .artist_orm import IGNORE_AVAILABILITY
 from .controllers_misc import (set_genre_field_options, update_result,
                                delete_result, create_result, exists_or_404, get_availability_date, FactoryObj)
-
-from config import USE_ORM
 
 ORM = USE_ORM
 ENGINE = not ORM
@@ -90,16 +90,26 @@ def search_artists():
 
     form = NCSSearchForm()
 
-    return render_artists('Fyyur | Artists Search', form, artists_search(mode, form))
+    return render_artists('Fyyur | Artists Search', form,
+                          artists_search(mode, form, simple_search_term=request.form.get('search_term', '')))
 
 
 def search_artists_advanced():
     """
-    Perform advanced search on artists
+    Perform advanced search on artists.
+    A GET returns an empty search form
+    A POST performs the search
     """
+    is_post = (request.method == 'POST')
+
     form = NCSSearchForm()
 
-    if request.method == 'POST':
+    genres = form.genres.data if is_post else list()
+
+    # set choices & validators based on possible options
+    set_genre_field_options(form.genres, genres, required=False)
+
+    if is_post:
         results = artists_search(SEARCH_ADVANCED, form)
     else:
         results = {
@@ -125,7 +135,7 @@ def availability_by_artist(artist_id: int, from_date=None, as_type=EntityResult.
     return availability_by_artist_impl(artist_id, from_date, as_type=as_type)
 
 
-def show_artist(artist_id: int):
+def display_artist(artist_id: int):
     """
     Show the artist page with the given artist_id
     :param artist_id:   id of artist
@@ -144,13 +154,16 @@ def show_artist(artist_id: int):
         availability = None
     artist["availability"] = availability
 
-    return render_template('pages/show_artist.html', artist=artist)
+    return render_template('pages/display_artist.html', artist=artist)
 
 
 def edit_artist(artist_id: int):
     """
     Edit an artist
     :param artist_id: id of the artist to edit
+
+    A GET returns the form to be edited
+    A POST persists the updates
     """
     artist, as_type, no_availability = artist_to_edit(artist_id)
     model = MultiDict(artist)
@@ -179,14 +192,14 @@ def edit_artist(artist_id: int):
     if request.method == 'POST' and form.validate_on_submit():
         success, artist_name = update_artist(artist["id"], form, availability)
 
-        return update_result(success, artist_name, 'Artist', url_for('show_artist', artist_id=artist_id))
+        return update_result(success, artist_name, 'Artist', url_for('display_artist', artist_id=artist_id))
 
     return render_template('forms/edit_artist.html',
                            form=form,
                            artist_name=model["name"],
                            title='Edit Artist',
                            submit_action=url_for('edit_artist', artist_id=artist_id),
-                           cancel_url=url_for('show_artist', artist_id=artist_id),
+                           cancel_url=url_for('display_artist', artist_id=artist_id),
                            submit_text='Update',
                            submit_title='Update artist'
                            )
@@ -202,12 +215,15 @@ def delete_artist(artist_id: int):
     return delete_result(success, artist_name, 'Artist')
 
 
-def create_artist_submission():
+def create_artist():
     """
     Create an artist
+    A GET returns an empty form
+    A POST submits the info
     """
+    is_post = (request.method == 'POST')
     form = ArtistForm()
-    if request.method == 'POST':
+    if is_post:
         genres = form.genres.data
     else:
         genres = list()
@@ -215,7 +231,7 @@ def create_artist_submission():
     # set choices & validators based on possible options
     set_genre_field_options(form.genres, genres)
 
-    if request.method == 'POST' and form.validate_on_submit():
+    if is_post and form.validate_on_submit():
 
         artist = populate_artist(
             artist_factory(FactoryObj.OBJECT), form)
@@ -226,7 +242,7 @@ def create_artist_submission():
         artist_id, artist_name = existing_artist(*extract_unique_properties(artist))
 
         if artist_id is not None:
-            url = url_for('show_artist', artist_id=artist_id)
+            url = url_for('display_artist', artist_id=artist_id)
             flash(Markup(f'A listing for {artist_name} already exists! '
                          f'Please see <a href="{url}">{artist_name}</a>.'))
         else:
@@ -238,7 +254,7 @@ def create_artist_submission():
     return render_template('forms/edit_artist.html',
                            form=form,
                            title='Create Artist',
-                           submit_action=url_for('create_artist_submission'),
+                           submit_action=url_for('create_artist'),
                            cancel_url=url_for('index'),
                            submit_text='Create',
                            submit_title='Create artist'

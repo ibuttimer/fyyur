@@ -51,52 +51,39 @@
           <a class="navbar-brand" href="/">🔥</a>
         </div>
         <div class="collapse navbar-collapse">
+          {% if ('venue' in request.endpoint) or ('artist' in request.endpoint) or ('show' in request.endpoint) %}
           <ul class="nav navbar-nav">
             <li>
-              {% if (request.endpoint == 'venues') or
-                (request.endpoint == 'search_venues') or
-                (request.endpoint == 'show_venue') %}
-              <form class="search" method="post" action="/venues/search?mode=basic">
+              <form class="search" method="post"
+              {% if 'venue' in request.endpoint %}
+                action="{{search_info.venue.url}}"
+              {% elif 'artist' in request.endpoint %}
+                action="{{search_info.artist.url}}"
+              {% elif 'show' in request.endpoint %}
+                action="{{search_info.show.url}}"
+              {% endif %}
+              >
                 <input class="form-control"
                   type="search"
                   name="search_term"
-                  placeholder="Find a venue"
+                  {% if 'venue' in request.endpoint %}
+                    placeholder="{{search_info.venue.text}}"
+                  {% elif 'artist' in request.endpoint %}
+                    placeholder="{{search_info.artist.text}}"
+                  {% elif 'show' in request.endpoint %}
+                    placeholder="{{search_info.show.text}}"
+                  {% endif %}
                   aria-label="Search">
-                  {# https://flask-wtf.readthedocs.io/en/v0.12/csrf.html #}
-                  <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
+                  {# https://flask-wtf.readthedocs.io/en/stable/csrf.html#setup #}
+                  <input type="hidden" id="csrf_token" name="csrf_token" value="{{csrf_token()}}" />
                 </form>
-              {% endif %}
-              {% if (request.endpoint == 'artists') or
-                (request.endpoint == 'search_artists') or
-                (request.endpoint == 'show_artist') %}
-              <form class="search" method="post" action="/artists/search?mode=basic">
-                <input class="form-control"
-                  type="search"
-                  name="search_term"
-                  placeholder="Find an artist"
-                  aria-label="Search">
-                  {# https://flask-wtf.readthedocs.io/en/v0.12/csrf.html #}
-                  <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
-              </form>
-              {% endif %}
-              {% if (request.endpoint == 'shows') or
-                (request.endpoint == 'search_shows') %}
-              <form class="search" method="post" action="/shows/search?mode=basic">
-                <input class="form-control"
-                  type="search"
-                  name="search_term"
-                  placeholder="Find a show"
-                  aria-label="Search">
-                  {# https://flask-wtf.readthedocs.io/en/v0.12/csrf.html #}
-                  <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
-              </form>
-              {% endif %}
             </li>
           </ul>
+          {% endif %}
           <ul class="nav navbar-nav">
-            <li {% if request.endpoint == 'venues' %} class="active" {% endif %}><a href="{{ url_for('venues') }}">Venues</a></li>
-            <li {% if request.endpoint == 'artists' %} class="active" {% endif %}><a href="{{ url_for('artists') }}">Artists</a></li>
-            <li {% if request.endpoint == 'shows' %} class="active" {% endif %}><a href="{{ url_for('shows') }}">Shows</a></li>
+            <li {% if 'venue' in request.endpoint %} class="active" {% endif %}><a href="{{ url_for('venues') }}">Venues</a></li>
+            <li {% if 'artist' in request.endpoint %} class="active" {% endif %}><a href="{{ url_for('artists') }}">Artists</a></li>
+            <li {% if 'show' in request.endpoint %} class="active" {% endif %}><a href="{{ url_for('shows') }}">Shows</a></li>
           </ul>
         </div><!--/.nav-collapse -->
       </div>
@@ -132,32 +119,10 @@
   <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
   <script>window.jQuery || document.write('<script type="text/javascript" src="/static/js/libs/jquery-1.11.1.min.js"><\/script>')</script>
   <script type="text/javascript" src="/static/js/libs/bootstrap-3.1.1.min.js" defer></script>
-  <script type="text/javascript" src="/static/js/plugins.js" defer></script>
-  <script type="text/javascript">
-    var csrf_token = "{{ csrf_token() }}";
 
-    $.ajaxSetup({
-        beforeSend: function(xhr, settings) {
-            if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type) && !this.crossDomain) {
-                xhr.setRequestHeader("X-CSRFToken", csrf_token);
-            }
-        }
-    });
-  </script>
-
-  <!-- datepicker related
-    see https://www.npmjs.com/package/jquery-datetimepicker -->
+  <!-- datepicker related, see https://www.npmjs.com/package/jquery-datetimepicker -->
   <link rel="stylesheet" type="text/css" href="/static/css/jquery.datetimepicker.min.css"/>
   <script src="/static/js/libs/jquery.datetimepicker.full.min.js"></script>
-  <script>
-    jQuery.datetimepicker.setLocale('en');
-    jQuery('.dtpick').datetimepicker({
-      format:'Y-m-d H:i'
-    });
-    jQuery('.tpick').datetimepicker({
-      datepicker:false,
-      format:'H:i'
-    });
-  </script>
-  
+
+  <script type="text/javascript" src="/static/js/plugins.js" defer></script>
 </body>

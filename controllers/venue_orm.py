@@ -10,17 +10,18 @@ from flask_wtf import FlaskForm
 from sqlalchemy import func, and_, cast, Date
 
 from .controllers_misc import (add_show_summary, model_property_list, IGNORE_ID_GENRES,
-                               IGNORE_ID, FactoryObj
+                               IGNORE_ID, FactoryObj, populate_genred_model
                                )
 from misc import get_music_entity_orm
-from forms import (populate_genred_model)
 from misc import EntityResult, print_exc_info
 from misc.queries import entity_shows_count, shows_by_venue
-from models import SQLAlchemyDB as db, Venue, Artist, Show
+from models import SQLAlchemyDB as db, Venue, Artist, Show, get_entity, VENUE_TABLE
 
 BOOKING_BY_VENUE_KEYS = ['start_time', 'duration', 'name']
 # indices to extract data for db results
 BOOKING_BY_VENUE_DICT = {BOOKING_BY_VENUE_KEYS[p]: p for p in range(len(BOOKING_BY_VENUE_KEYS))}
+
+_VENUE_ = get_entity(VENUE_TABLE)
 
 
 def venue_factory_orm(obj_type: FactoryObj) -> Union[Venue, object, None]:
@@ -31,9 +32,9 @@ def venue_factory_orm(obj_type: FactoryObj) -> Union[Venue, object, None]:
     """
     result = None
     if obj_type == FactoryObj.OBJECT:
-        result = Venue()
+        result = _VENUE_.model()
     elif obj_type == FactoryObj.CLASS:
-        result = Venue
+        result = _VENUE_.orm_model
     return result
 
 
@@ -52,7 +53,7 @@ def venues_orm() -> list:
             venues.append({
                 "state": city_state[0],
                 "city": city_state[1],
-                "venues": entity_shows_count(venue_list, Show.venue_id)
+                "venues": entity_shows_count(venue_list, _VENUE_)
             })
     except:
         print_exc_info()
@@ -66,7 +67,7 @@ def get_venue_orm(venue_id: int) -> Venue:
     Get a venue
     :param venue_id:   id of venue
     """
-    venue = get_music_entity_orm(venue_id, Venue)
+    venue = get_music_entity_orm(venue_id, _VENUE_)
     return add_show_summary(venue_id, venue, shows_by_venue)
 
 
@@ -118,7 +119,7 @@ def venue_to_edit_orm(venue_id: int) -> (Venue, EntityResult):
     Edit an venue
     :param venue_id: id of the venue to edit
     """
-    venue = get_music_entity_orm(venue_id, Venue)
+    venue = get_music_entity_orm(venue_id, _VENUE_)
     as_type = EntityResult.MODEL  # availability as a model
     return venue, as_type
 

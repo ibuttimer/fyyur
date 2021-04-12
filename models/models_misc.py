@@ -132,3 +132,13 @@ def model_property_list(model: Model, ignore=None):
         ignore = []
     return [c_attr.key for c_attr in inspect(model).mapper.column_attrs
             if c_attr.key not in ignore]
+
+
+def fq_column(table: str, column: str):
+    """
+    Get the fully qualified name for the specified column
+    :param table:   database table name
+    :param column:  column name
+    :return:
+    """
+    return f'"{table}".{column}'

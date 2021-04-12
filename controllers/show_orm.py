@@ -10,10 +10,12 @@ from flask_sqlalchemy import Pagination
 from flask_wtf import FlaskForm
 
 from forms import MIDNIGHT
-from misc import (get_config, print_exc_info, EntityResult, name_city_state_search_clauses, entity_search_clauses,
-                  OR_CONJUNC, AND_CONJUNC, SearchParams
+from misc import (print_exc_info, EntityResult, ncsg_search_clauses, entity_search_clauses,
+                  OR_CONJUNC, AND_CONJUNC, SearchParams, entity_search_expression
                   )
-from models import SQLAlchemyDB as db, Venue, Artist, Show, Availability
+from util import get_config
+from models import SQLAlchemyDB as db, Venue, Artist, Show, Availability, get_entity, ARTIST_TABLE, VENUE_TABLE, \
+    SHOWS_TABLE
 from .controllers_misc import FactoryObj, FILTER_PREVIOUS, FILTER_UPCOMING
 
 SHOWS_KEYS = ['venue_id', 'artist_id', 'start_time', 'venue_name', 'artist_name', 'artist_image_link']
@@ -21,6 +23,10 @@ SHOWS_KEYS = ['venue_id', 'artist_id', 'start_time', 'venue_name', 'artist_name'
 SHOWS_DICT = {SHOWS_KEYS[p]: p for p in range(len(SHOWS_KEYS))}
 
 SHOWS_PER_PAGE = get_config("SHOWS_PER_PAGE")
+
+_ARTIST_ = get_entity(ARTIST_TABLE)
+_VENUE_ = get_entity(VENUE_TABLE)
+_SHOWS_ = get_entity(SHOWS_TABLE)
 
 
 def show_factory_orm(obj_type: FactoryObj) -> Union[Show, object, None]:
@@ -31,9 +37,9 @@ def show_factory_orm(obj_type: FactoryObj) -> Union[Show, object, None]:
     """
     result = None
     if obj_type == FactoryObj.OBJECT:
-        result = Show()
+        result = _SHOWS_.model()
     elif obj_type == FactoryObj.CLASS:
-        result = Show
+        result = _SHOWS_.orm_model
     return result
 
 
@@ -50,9 +56,11 @@ def shows_orm(page: int, filterby: str, mode: str, form: FlaskForm, search_term:
     pagination = Pagination(None, page, SHOWS_PER_PAGE, 0, shows_list)
     # advanced search on Venue & Artist, joining class clauses with 'and' and the result of those with 'or'
     # e.g. if have 'name' do same search on Venue & Artist and 'or' their results
-    search = SearchParams([Venue, Artist], conjunction=[OR_CONJUNC, AND_CONJUNC])
+    search = SearchParams([_ARTIST_, _VENUE_], conjunction=[OR_CONJUNC, AND_CONJUNC]).load_form(form)
+    search.simple_search_term = search_term
     try:
-        shows_list = Show.query.join(Venue, Show.venue_id == Venue.id) \
+        shows_list = Show.query\
+            .join(Venue, Show.venue_id == Venue.id) \
             .join(Artist, Show.artist_id == Artist.id) \
             .with_entities(Show.venue_id, Show.artist_id, Show.start_time,
                            Venue.name, Artist.name, Artist.image_link)
@@ -62,9 +70,9 @@ def shows_orm(page: int, filterby: str, mode: str, form: FlaskForm, search_term:
             shows_list = shows_list.filter(Show.start_time > datetime.today())
 
         # get search terms and clauses for both Venue & Artist
-        name_city_state_search_clauses(mode, form, search_term, search)
+        ncsg_search_clauses(mode, search)
         if len(search.clauses) > 0:
-            shows_list = entity_search_clauses(shows_list, search)
+            shows_list = entity_search_clauses(shows_list, search, entity_search_expression)
 
         pagination = shows_list \
             .order_by(Show.start_time) \
@@ -123,20 +131,23 @@ def dow_availability_orm(availability: Availability, dow: int):
     :param availability:    availability info
     :param dow:             day of the week; 0=monday etc.
     """
-    if dow == 0:  # monday
-        slot = availability.monday
-    elif dow == 1:  # tuesday
-        slot = availability.tuesday
-    elif dow == 2:  # wednesday
-        slot = availability.wednesday
-    elif dow == 3:  # thursday
-        slot = availability.thursday
-    elif dow == 4:  # friday
-        slot = availability.friday
-    elif dow == 5:  # saturday
-        slot = availability.saturday
-    else:  # sunday
-        slot = availability.sunday
+    if availability is not None:
+        if dow == 0:  # monday
+            slot = availability.monday
+        elif dow == 1:  # tuesday
+            slot = availability.tuesday
+        elif dow == 2:  # wednesday
+            slot = availability.wednesday
+        elif dow == 3:  # thursday
+            slot = availability.thursday
+        elif dow == 4:  # friday
+            slot = availability.friday
+        elif dow == 5:  # saturday
+            slot = availability.saturday
+        else:  # sunday
+            slot = availability.sunday
+    else:
+        slot = (None, None)
 
     return AvailabilitySlot(pair=slot)
 

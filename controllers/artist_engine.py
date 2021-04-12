@@ -9,14 +9,19 @@ from flask import abort
 from flask_wtf import FlaskForm
 
 from misc.engine import execute, execute_transaction
-from forms import (populate_genred_model, populate_model, AVAILABILITY_FROM_DATE_FMT, AVAILABILITY_TIME_FMT)
+from forms import (populate_model, AVAILABILITY_FROM_DATE_FMT, AVAILABILITY_TIME_FMT)
 from models import (ARTIST_TABLE, AVAILABILITY_TABLE, ARTIST_GENRES_TABLE,
-                    equal_dict, dict_disjoint, new_model_dict)
-from models import is_available, get_model_property_list, SHOWS_TABLE
-from misc.queries import shows_by_artist
+                    equal_dict, dict_disjoint, get_entity)
+from models import is_available, get_model_property_list, SHOWS_TABLE, fq_column
 from .artist_orm import IGNORE_AVAILABILITY, IGNORE_ID_DATE
-from .controllers_misc import add_show_summary, model_property_list, IGNORE_ID_GENRES, IGNORE_ID, FactoryObj
-from misc import get_music_entity_engine, genre_changes_engine, exec_transaction_engine, print_exc_info, EntityResult
+from .controllers_misc import add_show_summary, model_property_list, IGNORE_ID_GENRES, IGNORE_ID, FactoryObj, \
+    populate_genred_model
+from misc import (get_music_entity_engine, genre_changes_engine, exec_transaction_engine, print_exc_info, EntityResult,
+                  shows_by_artist)
+
+
+_ARTIST_ = get_entity(ARTIST_TABLE)
+_AVAILABILITY_ = get_entity(AVAILABILITY_TABLE)
 
 
 def artist_factory_engine(obj_type: FactoryObj) -> Union[dict, str, None]:
@@ -27,9 +32,9 @@ def artist_factory_engine(obj_type: FactoryObj) -> Union[dict, str, None]:
     """
     result = None
     if obj_type == FactoryObj.OBJECT:
-        result = new_model_dict(ARTIST_TABLE)
+        result = _ARTIST_.model_dict()
     elif obj_type == FactoryObj.CLASS:
-        result = ARTIST_TABLE
+        result = _ARTIST_.eng_table
     return result
 
 
@@ -41,9 +46,9 @@ def availability_factory_engine(obj_type: FactoryObj) -> Union[dict, str, None]:
     """
     result = None
     if obj_type == FactoryObj.OBJECT:
-        result = new_model_dict(AVAILABILITY_TABLE)
+        result = _AVAILABILITY_.model_dict()
     elif obj_type == FactoryObj.CLASS:
-        result = AVAILABILITY_TABLE
+        result = _AVAILABILITY_.eng_table
     return result
 
 
@@ -60,10 +65,12 @@ def availability_by_artist_engine(artist_id: int,
         properties = ['"' + AVAILABILITY_TABLE + '".' + p for p in get_model_property_list(AVAILABILITY_TABLE)]
         properties = ', '.join(properties)
         result = execute(f'SELECT {properties} FROM "{AVAILABILITY_TABLE}" '
-                         f'INNER JOIN "{ARTIST_TABLE}" ON "{AVAILABILITY_TABLE}".artist_id = "{ARTIST_TABLE}".id '
-                         f'WHERE "{AVAILABILITY_TABLE}".artist_id = {artist_id} '
-                         f'AND "{AVAILABILITY_TABLE}".from_date < TIMESTAMP \'{from_date}\' '
-                         f'ORDER BY "{AVAILABILITY_TABLE}".from_date DESC, "{AVAILABILITY_TABLE}".id DESC;')
+                         f'INNER JOIN "{ARTIST_TABLE}" '
+                         f'ON {_AVAILABILITY_.fq_column("artist_id")} = {_ARTIST_.fq_column("id")} '
+                         f'WHERE {_AVAILABILITY_.fq_column("artist_id")} = {artist_id} '
+                         f'AND {_AVAILABILITY_.fq_column("from_date")} < TIMESTAMP \'{from_date}\' '
+                         f'ORDER BY {_AVAILABILITY_.fq_column("from_date")} DESC, '
+                         f'{_AVAILABILITY_.fq_column("id")} DESC;')
         if result.rowcount == 0:
             availability = None
         else:
@@ -81,7 +88,7 @@ def get_artist_engine(artist_id: int) -> dict:
     Show the artist page with the given artist_id
     :param artist_id:   id of artist
     """
-    artist = get_music_entity_engine(artist_id, ARTIST_TABLE, ARTIST_GENRES_TABLE, 'artist_id')
+    artist = get_music_entity_engine(artist_id, _ARTIST_)
     return add_show_summary(artist_id, artist, shows_by_artist)
 
 
@@ -151,7 +158,7 @@ def update_artist_engine(artist: dict, form: FlaskForm, availability: dict) -> (
     stmts = []
     artist_id = artist["id"]
 
-    updated_artist = populate_artist_engine(new_model_dict(ARTIST_TABLE), form)
+    updated_artist = populate_artist_engine(_ARTIST_.model_dict(), form)
     if not equal_dict(artist, updated_artist, IGNORE_ID):
         # change has occurred update artist
         to_set = [f'{k}=\'{v}\'' for k, v in updated_artist.items()
@@ -162,11 +169,10 @@ def update_artist_engine(artist: dict, form: FlaskForm, availability: dict) -> (
 
         # update genre link table
         if updated_artist["genres"] != artist["genres"]:
-            for stmt in genre_changes_engine(artist["genres"], updated_artist["genres"],
-                                             artist_id, ARTIST_GENRES_TABLE, 'artist_id'):
+            for stmt in genre_changes_engine(artist["genres"], updated_artist["genres"], artist_id, _ARTIST_):
                 stmts.append(stmt)
 
-    new_availability = populate_availability_engine(new_model_dict(AVAILABILITY_TABLE), form)
+    new_availability = populate_availability_engine(_AVAILABILITY_.model_dict(), form)
     new_availability["artist_id"] = artist_id
 
     if is_available(availability) != is_available(new_availability) or \
@@ -182,7 +188,7 @@ def artist_to_edit_engine(artist_id: int) -> (dict, EntityResult, dict):
     Edit an artist
     :param artist_id: id of the artist to edit
     """
-    artist = get_music_entity_engine(artist_id, ARTIST_TABLE, ARTIST_GENRES_TABLE, 'artist_id')
+    artist = get_music_entity_engine(artist_id, _ARTIST_)
     as_type = EntityResult.DICT  # availability as a dict
     no_availability = dict()
     return artist, as_type, no_availability
@@ -301,8 +307,7 @@ def create_artist_engine(artist: dict, availability: dict):
 
                 stmts = []
                 # add genres
-                for stmt in genre_changes_engine([], artist["genres"],
-                                                 artist_id, ARTIST_GENRES_TABLE, 'artist_id'):
+                for stmt in genre_changes_engine([], artist["genres"], artist_id, _ARTIST_):
                     stmts.append(stmt)
 
                 if is_available(availability):

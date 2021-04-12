@@ -9,13 +9,16 @@ from flask import abort
 from flask_wtf import FlaskForm
 from sqlalchemy import and_, func
 
-from forms import (populate_genred_model, populate_model)
-from models import SQLAlchemyDB as db, Artist, Show, Availability
+from forms import (populate_model)
+from models import SQLAlchemyDB as db, Artist, Show, Availability, get_entity, ARTIST_TABLE, AVAILABILITY_TABLE
 from models import is_available
 from misc.queries import shows_by_artist
 from .controllers_misc import (add_show_summary, model_property_list, IGNORE_ID_GENRES,
-                               IGNORE_ID, FactoryObj)
+                               IGNORE_ID, FactoryObj, populate_genred_model)
 from misc import print_exc_info, EntityResult, get_music_entity_orm
+
+_ARTIST_ = get_entity(ARTIST_TABLE)
+_AVAILABILITY_ = get_entity(AVAILABILITY_TABLE)
 
 
 def artist_factory_orm(obj_type: FactoryObj) -> Union[Artist, object, None]:
@@ -26,9 +29,9 @@ def artist_factory_orm(obj_type: FactoryObj) -> Union[Artist, object, None]:
     """
     result = None
     if obj_type == FactoryObj.OBJECT:
-        result = Artist()
+        result = _ARTIST_.model()
     elif obj_type == FactoryObj.CLASS:
-        result = Artist
+        result = _ARTIST_.orm_model
     return result
 
 
@@ -40,9 +43,9 @@ def availability_factory_orm(obj_type: FactoryObj) -> Union[Artist, object, None
     """
     result = None
     if obj_type == FactoryObj.OBJECT:
-        result = Availability()
+        result = _AVAILABILITY_.model()
     elif obj_type == FactoryObj.CLASS:
-        result = Availability
+        result = _AVAILABILITY_.orm_model
     return result
 
 
@@ -51,7 +54,7 @@ def get_artist_orm(artist_id: int) -> Artist:
     Get an artist
     :param artist_id:   id of artist
     """
-    artist = get_music_entity_orm(artist_id, Artist)
+    artist = get_music_entity_orm(artist_id, _ARTIST_)
     return add_show_summary(artist_id, artist, shows_by_artist)
 
 
@@ -128,7 +131,7 @@ def artist_to_edit_orm(artist_id: int) -> (Artist, EntityResult, Availability):
     Edit an artist
     :param artist_id: id of the artist to edit
     """
-    artist = get_music_entity_orm(artist_id, Artist)
+    artist = get_music_entity_orm(artist_id, _ARTIST_)
     as_type = EntityResult.MODEL  # availability as model
     no_availability = Availability()
     return artist, as_type, no_availability

@@ -2,8 +2,9 @@
 {% block title %}{{title}}{% endblock %}
 {% block content %}
 
-{% include 'pages/advanced_search.html' %}
+{% include 'pages/advanced_search_snippet.html' %}
 
+<p id="page-title" class="hidden">shows</p>
 <div class="row shows">
     {%for show in results.data %}
     <div class="col-sm-4">

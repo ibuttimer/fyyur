@@ -6,7 +6,7 @@ from wtforms.fields.simple import TextAreaField
 from wtforms.validators import InputRequired, AnyOf, Optional, URL, ValidationError
 import phonenumbers
 
-from misc import current_datetime, get_config
+from util import get_config, current_datetime
 
 # choices for possible states
 STATE_CHOICES = [
@@ -64,9 +64,11 @@ STATE_CHOICES = [
 ]
 # sort by state name
 STATE_CHOICES.sort(key=lambda s: s[1])
+
 # choices for possible states with unselected option
+NO_STATE_SELECTED = 'none'
 STATE_CHOICES_WITH_SEL = STATE_CHOICES.copy()
-STATE_CHOICES_WITH_SEL.insert(0, ('none', 'Select state'))
+STATE_CHOICES_WITH_SEL.insert(0, (NO_STATE_SELECTED, 'Select state'))
 # valid options for state selection
 STATES = [s[0] for s in STATE_CHOICES]
 
@@ -78,6 +80,8 @@ DURATION_CHOICES = [
     (120, "2 hours"),
     (OTHER_DURATION, "Other")
 ]
+
+NO_GENRE_SELECTED = 'any'
 
 
 def validate_phone(form, field):
@@ -425,3 +429,40 @@ class NCSSearchForm(FlaskForm):
         'state', validators=[Optional(), AnyOf(STATES)],
         choices=STATE_CHOICES_WITH_SEL
     )
+    # choices & validators need to be set dynamically in controller
+    genres = SelectMultipleField(
+        'genres', validators=[Optional()],
+        choices=[]
+    )
+
+
+class BookArtistForm(FlaskForm):
+    name = StringField(
+        'name', validators=[Optional()]
+    )
+    # choices & validators need to be set dynamically in controller
+    genres = SelectMultipleField(
+        'genres', validators=[Optional()],
+        choices=[]
+    )
+
+
+def load_form(form: FlaskForm) -> dict:
+    result = {
+        "name": None,
+        "city": None,
+        "state": None,
+        "genres": None,
+    }
+    if isinstance(form, NCSSearchForm):
+        result["name"] = form.name.data
+        result["city"] = form.city.data
+        result["state"] = form.state.data
+        result["genres"] = form.genres.data
+    elif isinstance(form, BookArtistForm):
+        result["name"] = form.name.data
+        result["genres"] = form.genres.data
+    else:
+        raise NotImplemented(f'Unknown form: {type(form).__name__}')
+    return result
+

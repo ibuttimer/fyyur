@@ -1,7 +1,8 @@
 {% extends 'layouts/main.html' %}
 {% block title %}{{title}}{% endblock %}
 {% block content %}
-{% include 'pages/advanced_search.html' %}
+{% include 'pages/advanced_search_snippet.html' %}
+<p id="page-title" class="hidden">artists</p>
 <div class="col-sm-12">
 	<ul class="items">
 		{% for artist in results.data %}

@@ -2,25 +2,21 @@ from http import HTTPStatus
 from typing import Callable, Union, Any, List, AnyStr
 
 from flask import abort
-from flask_sqlalchemy import Model
 from werkzeug.datastructures import MultiDict
 
 from .engine import execute, execute_transaction
 from .common import EntityResult, print_exc_info
-from models import SHOWS_TABLE, GENRES_TABLE, ARTIST_TABLE, VENUE_TABLE
-from .app_cfg import get_config
+from models import SHOWS_TABLE, GENRES_TABLE, ARTIST_TABLE, VENUE_TABLE, Entity
+from util import get_config
 
 
-def get_music_entity_engine(entity_id: int, entity_class: Union[Model, AnyStr],
-                            genre_link_table: str = None, genre_link_field: str = None,
+def get_music_entity_engine(entity_id: int, entity: Entity,
                             result_type: EntityResult = EntityResult.DICT):
     """
     Get the music entity with the given entity_id
-    :param entity_id:        id of entity
-    :param entity_class:     class of entity or name of table to search
-    :param genre_link_table: name of entity/genre link table, only required in engine mode
-    :param genre_link_field: name of field in entity/genre link table linking to entity id, only required in engine mode
-    :param result_type:      type of result required
+    :param entity_id:   id of entity
+    :param entity:      entity to search for
+    :param result_type: type of result required
     """
     exists = False
     if result_type == EntityResult.DICT:
@@ -29,17 +25,17 @@ def get_music_entity_engine(entity_id: int, entity_class: Union[Model, AnyStr],
         data = MultiDict()
     try:
         # genres is list of names
-        entity = execute(f'SELECT *, ARRAY('
-                         f'SELECT g.name FROM "{genre_link_table}" gl '
-                         f'JOIN "{GENRES_TABLE}" g ON (gl.genre_id = g.id) '
-                         f'WHERE gl.{genre_link_field} = {entity_id}) as genres'
-                         f' from "{entity_class}" '
-                         f'WHERE "{entity_class}".id = {entity_id};'
-                         )
-        if entity.rowcount != 0:
+        instance = execute(f'SELECT *, ARRAY('
+                           f'SELECT g.name FROM "{entity.eng_genre_link_table}" gl '
+                           f'JOIN "{GENRES_TABLE}" g ON (gl.genre_id = g.id) '
+                           f'WHERE gl.{entity.eng_genre_link_column} = {entity_id}) as genres'
+                           f' from "{entity.eng_table}" '
+                           f'WHERE {entity.fq_column("id")} = {entity_id};'
+                           )
+        if instance.rowcount != 0:
             exists = True
 
-            entry = entity.fetchone()
+            entry = instance.fetchone()
 
             data = {k: v for k, v in entry.items()}     # convert to dict
             if result_type == EntityResult.MULTIDICT:
@@ -69,19 +65,20 @@ def get_show_summary_engine(entity_id: int, shows_by: Callable[[int, Any], List]
     return past_shows, upcoming_shows
 
 
-def genre_changes_engine(base: list, update: list, entity_id: int, table: str, column: str) -> list:
+def genre_changes_engine(base: list, update: list, entity_id: int, entity: Entity) -> list:
     """
     Get the list of SQL statements to update genre setting from 'base' to 'update'
     :param base:         base list
     :param update:       updated list
     :param entity_id:    id of entity to which genre list refers
-    :param table:        entity/genre link table
-    :param column:       entity column in entity/genre link table
+    :param entity:       entity to update
     """
     stmts = []
     genre_objs = genre_objs_engine(list(set(base + update)))
 
     def genre_id(gen_g): return next(item for item in genre_objs if item["name"] == gen_g)["id"]
+    table = entity.eng_genre_link_table
+    column = entity.eng_genre_link_column
 
     # to add
     for g in update:
@@ -118,15 +115,15 @@ def exec_transaction_engine(stmts: list, identifier: str) -> (Union[bool, None],
     return success, identifier
 
 
-def exists_engine(entity_class: AnyStr, entity_id: int):
+def exists_engine(entity: AnyStr, entity_id: int):
     """
     Check if entity exists
-    :param entity_class:   name of table to search
-    :param entity_id:      id of entity to check
+    :param entity:      name of table to search
+    :param entity_id:   id of entity to check
     """
     exists = False
     try:
-        venue = execute(f'SELECT name from "{entity_class}" WHERE id = {entity_id};')
+        venue = execute(f'SELECT name from "{entity}" WHERE id = {entity_id};')
         exists = (venue.rowcount != 0)
     except:
         print_exc_info()

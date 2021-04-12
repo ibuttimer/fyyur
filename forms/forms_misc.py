@@ -3,9 +3,7 @@ from typing import Union, Any
 from flask_sqlalchemy import Model
 from flask_wtf import FlaskForm
 from wtforms import SelectMultipleField, SelectField
-from wtforms.validators import AnyOf, InputRequired, ValidationError
-
-from misc import get_genre_list
+from wtforms.validators import AnyOf, InputRequired, ValidationError, Optional
 
 
 class OneOrMoreOf(AnyOf):
@@ -69,19 +67,6 @@ def populate_model_property(model: Union[Model, dict], prop: str, value: Any):
     return model
 
 
-def populate_genred_model(model: Union[Model, dict], form: FlaskForm, properties: list):
-    """
-    Populate a model with genres from a form
-    :param model:       entity to populate
-    :param form:        form to populate from
-    :param properties:  list of properties to populate
-    """
-    populate_model(model, form, properties)
-    genres = get_genre_list(form["genres"].data)
-    populate_model_property(model, "genres", genres)
-    return model
-
-
 def set_select_field_options(field: Union[SelectMultipleField, SelectField], choices: Union[list, Any],
                              validator: object, data: Any):
     """
@@ -111,13 +96,17 @@ def set_singleselect_field_options(field: SelectField, choices: Union[list, Any]
                              AnyOf(values, message="Please select a value from the list"), data)
 
 
-def set_multiselect_field_options(field: SelectMultipleField, choices: Union[list, Any], values: list, data: Any):
+def set_multiselect_field_options(field: SelectMultipleField, choices: Union[list, Any], values: list, data: Any,
+                                  required: bool = True):
     """
     Set the options for a multi select WTForms field
     :param field:      field to set options on
     :param choices:    possible options
     :param values:     A sequence of valid inputs.
     :param data:       value(s) to set
+    :param required:   selection required flag
     """
     set_select_field_options(field, choices,
-                             OneOrMoreOf(values, message="Please select one or more values from the list"), data)
+                             OneOrMoreOf(values, message="Please select one or more values from the list")
+                             if required else Optional(),
+                             data)

@@ -9,11 +9,10 @@ from werkzeug.datastructures import MultiDict
 from controllers.controllers_misc import (set_genre_field_options, update_result,
                                           delete_result, create_result, get_availability_date, exists_or_404,
                                           FactoryObj)
-from forms import (VenueForm, NCSSearchForm)
-from misc.queries import SEARCH_BASIC, venues_search, SEARCH_ADVANCED
-from .venue_engine import time_to_str
-
-
+from forms import (VenueForm, NCSSearchForm, BookArtistForm)
+from misc.queries import SEARCH_BASIC, venues_search, SEARCH_ADVANCED, artists_search
+from util import current_datetime
+from .venue_engine import time_to_str, datetime_to_str
 from config import USE_ORM
 
 ORM = USE_ORM
@@ -90,16 +89,24 @@ def search_venues():
 
     form = NCSSearchForm()
 
-    return render_venues('Fyyur | Venues Search', form, venues_search(mode, form))
+    return render_venues('Fyyur | Venues Search', form,
+                         venues_search(mode, form, simple_search_term=request.form.get('search_term', '')))
 
 
 def search_venues_advanced():
     """
     Perform advanced search on venues
     """
+    is_post = (request.method == 'POST')
+
     form = NCSSearchForm()
 
-    if request.method == 'POST':
+    genres = form.genres.data if is_post else list()
+
+    # set choices & validators based on possible options
+    set_genre_field_options(form.genres, genres, required=False)
+
+    if is_post:
         results = venues_search(SEARCH_ADVANCED, form)
     else:
         results = {
@@ -112,16 +119,57 @@ def search_venues_advanced():
     return render_venues('Fyyur | Venues Search', form, results)
 
 
-def show_venue(venue_id: int):
+def render_venue(venue, form: BookArtistForm, results=None):
+    """
+    Render the venue page
+    :param venue:   venue to display
+    :param form:    search form
+    :param results: search results
+    :return:
+    """
+    return render_template('pages/display_venue.html',
+                           venue=venue,
+                           form=form,
+                           results=results,
+                           starttime=datetime_to_str(current_datetime()))
+
+
+def __display_venue(venue_id: int, form: BookArtistForm, results=None):
+    """
+    Show the venue page with the given venue_id
+    :param venue_id:   id of venue
+    :param form:    search form
+    :param results: search results
+    """
+    venue = get_venue(venue_id)
+
+    # set choices & validators based on possible options
+    set_genre_field_options(form.genres, list(), required=False)
+
+    return render_venue(venue=venue, form=form, results=results)
+
+
+def display_venue(venue_id: int):
     """
     Show the venue page with the given venue_id
     :param venue_id:   id of venue
     """
-    venue = get_venue(venue_id)
-    return render_template('pages/show_venue.html', venue=venue)
+    return __display_venue(venue_id, BookArtistForm())
 
 
-def edit_venue_submission(venue_id: int):
+def venue_search_performer(venue_id: int):
+    """
+    Perform an artist search for a venue
+    POST: perform search
+    """
+    form = BookArtistForm()
+
+    results = artists_search(SEARCH_ADVANCED, form)
+
+    return __display_venue(venue_id, form, results=results)
+
+
+def edit_venue(venue_id: int):
     """
     Edit a venue
     :param venue_id: id of the venue to edit
@@ -144,14 +192,14 @@ def edit_venue_submission(venue_id: int):
 
         success, venue_name = update_venue(venue["id"], form)
 
-        return update_result(success, venue_name, 'Venue', url_for('show_venue', venue_id=venue_id))
+        return update_result(success, venue_name, 'Venue', url_for('display_venue', venue_id=venue_id))
 
     return render_template('forms/edit_venue.html',
                            form=form,
                            venue_name=model["name"],
                            title='Edit Venue',
-                           submit_action=url_for('edit_venue_submission', venue_id=venue_id),
-                           cancel_url=url_for('show_venue', venue_id=venue_id),
+                           submit_action=url_for('edit_venue', venue_id=venue_id),
+                           cancel_url=url_for('display_venue', venue_id=venue_id),
                            submit_text='Update',
                            submit_title='Update venue'
                            )
@@ -167,12 +215,13 @@ def delete_venue(venue_id: int):
     return delete_result(success, venue_name, 'Venue')
 
 
-def create_venue_submission():
+def create_venue():
     """
     Create a venue
     """
+    is_post = (request.method == 'POST')
     form = VenueForm()
-    if request.method == 'POST':
+    if is_post:
         genres = form.genres.data
     else:
         genres = list()
@@ -180,7 +229,7 @@ def create_venue_submission():
     # set choices & validators based on possible options
     set_genre_field_options(form.genres, genres)
 
-    if request.method == 'POST' and form.validate_on_submit():
+    if is_post and form.validate_on_submit():
 
         venue = populate_venue(
             venue_factory(FactoryObj.OBJECT), form)
@@ -189,7 +238,7 @@ def create_venue_submission():
         venue_id, venue_name = existing_venue(*extract_unique_properties(venue))
 
         if venue_id is not None:
-            url = url_for('show_venue', venue_id=venue_id)
+            url = url_for('display_venue', venue_id=venue_id)
             flash(Markup(f'A listing for {venue_name} already exists! '
                          f'Please see <a href="{url}">{venue_name}</a>.'))
         else:
@@ -201,7 +250,7 @@ def create_venue_submission():
     return render_template('forms/edit_venue.html',
                            form=form,
                            title='Create Venue',
-                           submit_action=url_for('create_venue_submission'),
+                           submit_action=url_for('create_venue'),
                            cancel_url=url_for('index'),
                            submit_text='Create',
                            submit_title='Create venue'

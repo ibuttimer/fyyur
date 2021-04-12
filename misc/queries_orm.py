@@ -2,19 +2,18 @@
 # Imports
 # ---------------------------------------------------------------------------- #
 from datetime import datetime
-from typing import Union, AnyStr, NewType, List
+from typing import Union, AnyStr, NewType, List, Callable
 
 from flask_sqlalchemy import Model
-from sqlalchemy import and_, func, or_
+from sqlalchemy import and_, func, or_, Column
 from sqlalchemy.orm import Query
-from wtforms import Field
 
+from config import USE_ORM
 # ---------------------------------------------------------------------------- #
 # Models.
 # ---------------------------------------------------------------------------- #
-from .misc import check_no_list_in_list
-from models import Venue, Artist, Show, Genre
-from config import USE_ORM
+from .common import SearchParams
+from models import Show, Genre, Entity, VENUE_TABLE, get_entity, ARTIST_TABLE
 
 ORM = USE_ORM
 ENGINE = not ORM
@@ -30,76 +29,73 @@ ModelOrStr = NewType('ModelOrStr', Union[Model, AnyStr])
 ListOfOrModelOrStr = NewType('ListOfOrModelOrStr', Union[ModelOrStr, List[ModelOrStr]])
 
 
-def entity_search_all_orm(entity_class: Union[Artist, Venue]):
+def entity_search_all_orm(entity: Entity, search: SearchParams) -> Query:
     """
     Basic 'all' mode query
-    :param entity_class: class of entity or name of table to search
+    :param entity: entity to search
+    :param search:  search parameters for advanced search
     """
-    return entity_class.query \
-        .with_entities(entity_class.id, entity_class.name)
+    model_class = entity.orm_model
+    query = model_class.query
+    # add any joins
+    if search.customisation is not None:
+        for j in search.customisation:
+            query = query.join(j)
+    return query \
+        .with_entities(model_class.id, model_class.name)
 
 
-def entity_search_like_orm(entity_class: Union[Artist, Venue], prop: str, value: str):
+def entity_search_like_orm(entity: Entity, prop: str, value: str):
     """
     Like criteria
-    :param entity_class:    class of entity or name of table to search
+    :param entity:      entity to search
     :parameter prop:    property to apply 'like' criteria to
-    :parameter value:       value for 'like' criteria
+    :parameter value:   value for 'like' criteria
     """
     if prop == 'name':
-        like = entity_class.name.ilike("%" + value + "%")
+        like = entity.orm_model.name.ilike("%" + value + "%")
     elif prop == 'city':
-        like = entity_class.city.ilike("%" + value + "%")
+        like = entity.orm_model.city.ilike("%" + value + "%")
     else:
         like = None
     return like
 
 
-def entity_search_state_orm(entity_class: Union[Artist, Venue], value: str):
+def entity_search_state_orm(entity: Entity, value: str):
     """
     State criteria
-    :param entity_class:    class of entity or name of table to search
-    :parameter value:       value for criteria
+    :param entity:    entity to search
+    :parameter value: value for criteria
     """
-    return func.upper(entity_class.state) == func.upper(value)
+    return func.upper(entity.orm_model.state) == func.upper(value)
 
 
-class SearchParams:
+def entity_search_genres_orm(entity: Entity, values: list, search: SearchParams):
     """
-    Class representing a search and its generated clauses
-    :param entity_classes: class or classes to perform search for
-    :param conjunction:    conjugation(s) to join clauses
-    :param name:
-    :param city:
-    :param state:
+    Genres criteria
+    :param entity:  entity to search
+    :param values:  values for criteria
+    :param search:  search parameters for advanced search
     """
-    def __init__(self, entity_classes: ListOfOrModelOrStr, conjunction: Union[str, list] = None,
-                 name: str = None, city: str = None, state: str = None):
-        if not isinstance(entity_classes, list):
-            self.entity_classes = [entity_classes]
-        else:
-            self.entity_classes = entity_classes
-        self.name = name
-        self.city = city
-        self.state = state
-        self.conjunction = conjunction
-        self.search_terms = []
-        self.clauses = []
+    return or_(*[
+            entity.orm_model.genres.any(Genre.name == g) for g in values
+        ])
 
 
-def entity_search_clauses_orm(query: Query, search: SearchParams):
+def entity_search_clauses_orm(query: Query, search: SearchParams, entity_search_expression: Callable):
     """
     Append clauses
-    :param query:    query to append clauses to
-    :param search:   search parameters for advanced search
+    :param query:                       query to append clauses to
+    :param search:                      search parameters for advanced search
+    :param entity_search_expression:    function to join query
     """
-    expression = entity_search_expression_orm(search.clauses, search.conjunction)
+    expression = entity_search_expression(search.clauses, search.conjunction)
     if expression is not None:
         query = query.filter(expression)
     return query
 
 
-def conjunction_op(conjunction: str, *terms):
+def conjunction_op_orm(conjunction: str, *terms):
     """
     Create an expression joining the terms
     :param conjunction: conjunction to use to join terms
@@ -107,49 +103,6 @@ def conjunction_op(conjunction: str, *terms):
     :return:
     """
     return and_(*terms) if conjunction == AND_CONJUNC else or_(*terms)
-
-
-def entity_search_expression_orm(terms: list, conjunction: Union[str, list[str]]):
-    """
-    Join terms
-    :param terms:       terms to join; a list of terms, or a list of lists of terms
-    :param conjunction: conjunction to join terms; 'and' or 'or
-    """
-    expression = None
-
-    if terms is not None and len(terms) > 0:
-        if not isinstance(conjunction, list):
-            conjunction = [conjunction]
-
-        if len(conjunction) == 1:
-            # expecting a list with 1 or more clauses
-            check_no_list_in_list(terms)
-
-            if len(terms) == 1:
-                # single clause no conjunction necessary
-                expression = terms[0]
-            elif len(terms) > 1:
-                # join clauses using conjunction
-                expression = conjunction_op(conjunction[0], *terms)
-            else:
-                raise ValueError("Found empty list when expecting at least one entry")
-
-        elif len(conjunction) == 2:
-            # expecting a list of lists with 1 or more clauses
-            if not isinstance(terms, list):
-                raise ValueError("Expecting list of lists of clauses")
-            else:
-                for sub_term in terms:
-                    check_no_list_in_list(sub_term)
-
-            # create level 1 terms with level 1 conjunction
-            level1 = [conjunction_op(conjunction[1], *t) for t in terms]
-            # join level 1 terms with level 0 conjunction
-            expression = conjunction_op(conjunction[0], *level1)
-        else:
-            raise NotImplemented("Expressions beyond 2 levels not supported")
-
-    return expression
 
 
 def entity_search_execute_orm(query: Query):
@@ -160,69 +113,62 @@ def entity_search_execute_orm(query: Query):
     return query.all()
 
 
-def entity_shows_count_query_orm(entities: list, show_field: str):
+def entity_shows_count_query_orm(entities: list, entity: Entity):
     """
     Get the shows count search query
-    :param entities:   list of entities whose shows to search for
-    :param show_field: show field linked to entity id
+    :param entities:    list of entities whose shows to search for
+    :param entity:      entity to search for
     """
     data = []
-    for entity in entities:
+    for instance in entities:
         shows = Show.query \
-            .filter(and_(show_field == entity.id, Show.start_time > datetime.now())) \
+            .filter(and_(entity.orm_show_column == instance.id, Show.start_time > datetime.now())) \
             .count()
 
         data.append({
-            "id": entity.id,
-            "name": entity.name,
+            "id": instance.id,
+            "name": instance.name,
             "num_upcoming_shows": shows
         })
 
     return data
 
 
-def venues_search_class_field_orm() -> (Venue, Field):
-    """
-    Class and field for a search on venues
-    """
-    return Venue, Show.venue_id
-
-
-def artists_search_class_field_orm() -> (Artist, Field):
-    """
-    Class and field for a search on artists
-    """
-    return Artist, Show.artist_id
-
-
-def shows_by_orm(entity_id, entity_class: Union[Model, AnyStr], link_field, show_field, *criterion):
+def shows_by_orm(entity_id: int, entity: Entity, link_column: Column, *criterion):
     """
     Select shows for the specified entity
     :param entity_id:    id of entity whose shows to search for
-    :param entity_class: class of entity or name of table to search
-    :param link_field:   show field linking show and entity
-    :param show_field:   info field in show
+    :param entity:       entity to search for
+    :param link_column:  show column linking show and entity
     :param criterion:    filtering criterion
     """
-    return Show.query.join(entity_class, show_field == entity_class.id) \
-        .with_entities(show_field, Show.start_time, entity_class.name, entity_class.image_link) \
-        .filter(and_(link_field == entity_id, *criterion)) \
+    model_class = entity.orm_model        # entity model
+    show_column = entity.orm_show_column  # foreign key column in show model linking show and entity
+    return Show.query.join(model_class, show_column == model_class.id) \
+        .with_entities(show_column, Show.start_time, model_class.name, model_class.image_link) \
+        .filter(and_(link_column == entity_id, *criterion)) \
         .order_by(Show.start_date) \
         .all()
 
 
-def shows_by_artist_fields_orm():
+def shows_by_artist_fields_orm() -> (Entity, Column, list[str]):
     """
     Select shows for the specified artist
     """
-    return Venue, Show.artist_id, Show.venue_id, SHOWS_BY_KEYS
+    # select Show.venue_id, Show.start_time, Venue.name, Venue.image_link
+    # join Show and Venue on Show.venue_id == Venue.id
+    # where Show.artist_id == entity_id
+    return get_entity(VENUE_TABLE), get_entity(ARTIST_TABLE).orm_show_column, SHOWS_BY_KEYS
 
 
-def shows_by_venue_fields_orm():
+def shows_by_venue_fields_orm() -> (Entity, Column, list[str]):
     """
     Select shows for the specified venue
     """
-    return Artist, Show.venue_id, Show.artist_id, SHOWS_BY_KEYS
+    # select Show.artist_id, Show.start_time, Artist.name, Artist.image_link
+    # join Show and Artist on Show.artist_id == Artist.id
+    # where Show.venue_id == entity_id
+    return get_entity(ARTIST_TABLE), get_entity(VENUE_TABLE).orm_show_column, SHOWS_BY_KEYS
 
 
 def get_genres_options_orm():

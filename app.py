@@ -12,7 +12,7 @@ from flask_wtf import CSRFProtect
 from flask_wtf.csrf import CSRFError
 from http import HTTPStatus
 
-from misc.app_cfg import set_config, get_config
+from util import set_config, get_config
 from misc import print_exc_info
 
 # ---------------------------------------------------------------------------- #
@@ -52,43 +52,44 @@ csrf.init_app(app)
 # ---------------------------------------------------------------------------- #
 
 from controllers import (
-    shows, create_show_submission, search_shows, search_shows_advanced,
-    artists, search_artists, search_artists_advanced, show_artist,
-    edit_artist, delete_artist, artist_availability, create_artist_submission,
-    venues, search_venues, search_venues_advanced, show_venue,
-    create_venue_submission, delete_venue, edit_venue_submission, venue_bookings
+    shows, create_show, search_shows, search_shows_advanced,
+    artists, search_artists, search_artists_advanced, display_artist,
+    edit_artist, delete_artist, artist_availability, create_artist,
+    venues, search_venues, search_venues_advanced, display_venue,
+    create_venue, delete_venue, edit_venue, venue_bookings, venue_search_performer
 )
 
-app.add_url_rule('/shows/create', view_func=create_show_submission, methods=['POST', 'GET'])
 app.add_url_rule('/shows', view_func=shows, methods=['GET'])
 app.add_url_rule('/shows/search', view_func=search_shows, methods=['POST'])
 app.add_url_rule('/shows/advanced_search', view_func=search_shows_advanced, methods=['GET', 'POST'])
+app.add_url_rule('/shows/create', view_func=create_show, methods=['POST', 'GET'])
 
 app.add_url_rule('/artists', view_func=artists, methods=['GET'])
 app.add_url_rule('/artists/search', view_func=search_artists, methods=['POST'])
 app.add_url_rule('/artists/advanced_search', view_func=search_artists_advanced, methods=['GET', 'POST'])
-app.add_url_rule('/artists/<int:artist_id>', view_func=show_artist, methods=['GET'])
-app.add_url_rule('/artists/<int:artist_id>/edit', view_func=edit_artist, methods=['POST', 'GET'])
+app.add_url_rule('/artists/create', view_func=create_artist, methods=['POST', 'GET'])
+app.add_url_rule('/artists/<int:artist_id>', view_func=display_artist, methods=['GET'])
 app.add_url_rule('/artists/<int:artist_id>', view_func=delete_artist, methods=['DELETE'])
+app.add_url_rule('/artists/<int:artist_id>/edit', view_func=edit_artist, methods=['POST', 'GET'])
 app.add_url_rule('/artists/<int:artist_id>/availability', view_func=artist_availability, methods=['GET'])
-app.add_url_rule('/artists/create', view_func=create_artist_submission, methods=['POST', 'GET'])
 
 app.add_url_rule('/venues', view_func=venues, methods=['GET'])
 app.add_url_rule('/venues/search', view_func=search_venues, methods=['POST'])
 app.add_url_rule('/venues/advanced_search', view_func=search_venues_advanced, methods=['GET', 'POST'])
-app.add_url_rule('/venues/<int:venue_id>', view_func=show_venue, methods=['GET'])
-app.add_url_rule('/venues/create', view_func=create_venue_submission, methods=['POST', 'GET'])
+app.add_url_rule('/venues/create', view_func=create_venue, methods=['POST', 'GET'])
+app.add_url_rule('/venues/<int:venue_id>', view_func=display_venue, methods=['GET'])
 app.add_url_rule('/venues/<int:venue_id>', view_func=delete_venue, methods=['DELETE'])
-app.add_url_rule('/venues/<int:venue_id>/edit', view_func=edit_venue_submission, methods=['POST', 'GET'])
+app.add_url_rule('/venues/<int:venue_id>/edit', view_func=edit_venue, methods=['POST', 'GET'])
 app.add_url_rule('/venues/<int:venue_id>/bookings', view_func=venue_bookings, methods=['GET'])
+app.add_url_rule('/venues/<int:venue_id>/search/artist', view_func=venue_search_performer, methods=['POST'])
 
 # ---------------------------------------------------------------------------- #
 # Filters.
 # ---------------------------------------------------------------------------- #
 
 
-def format_datetime(value, date_format='medium'):
-    date = dateutil.parser.parse(value)
+def format_datetime(date_value, date_format='medium'):
+    date = dateutil.parser.parse(date_value)
     if date_format == 'full':
         date_format = "EEEE MMMM, d, y 'at' h:mma"
     elif date_format == 'medium':
@@ -98,6 +99,23 @@ def format_datetime(value, date_format='medium'):
 
 app.jinja_env.filters['datetime'] = format_datetime
 
+
+@app.context_processor
+def inject_user():
+    return dict(search_info={
+        'venue': {
+            'url': "/venues/search?mode=basic",
+            'text': "Find a venue"
+        },
+        'artist': {
+            'url': "/artists/search?mode=basic",
+            'text': "Find an artist"
+        },
+        'show': {
+            'url': "/shows/search?mode=basic",
+            'text': "Find a show"
+        }
+    })
 
 # ---------------------------------------------------------------------------- #
 # Controllers.

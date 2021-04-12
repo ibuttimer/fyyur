@@ -107,6 +107,18 @@ ul.items > li > a {
   color: initial;
   text-decoration: initial;
 }
+ul.items > li > button {
+  margin-bottom: 15px;
+  display: flex;
+  color: initial;
+  text-decoration: initial;
+}
+ul.items > li > input {
+  margin-bottom: 15px;
+  display: flex;
+  color: initial;
+  text-decoration: initial;
+}
 ul.items > li > a > i {
   padding: 7px 10px 0;
 }
@@ -167,6 +179,14 @@ p > i {
   border-radius: 5px;
   background: #bcf05d;
 }
+.bookable {
+  display: inline-block;
+  padding: 20px 30px;
+  margin-top: 30px;
+  border-radius: 15px;
+  font-weight: bold;
+  background: #fbb3fc;
+}
 span.available-slot {
   display: inline-block;
   font-family: monospace;
@@ -226,6 +246,30 @@ span.genre {
   text-transform: uppercase;
   border: solid 1px #eee;
 }
+span.dow {
+  display: inline-block;
+  font-family: monospace;
+  padding: 4px 8px;
+  background: #f0f0f0;
+  margin: 0 5px 5px 0;
+  border-radius: 3px;
+  color: #676767;
+  font-size: 0.7em;
+  text-transform: uppercase;
+  border: solid 1px #eee;
+}
+span.dow-day {
+  display: inline-block;
+  font-family: monospace;
+  padding: 4px 8px;
+  background: #bcf7cc;
+  margin: 0 5px 5px 0;
+  border-radius: 3px;
+  color: #cf2767;
+  font-size: 0.7em;
+  text-transform: uppercase;
+  border: solid 1px #eee;
+}
 .monospace {
   font-family: monospace;
   text-transform: uppercase;
@@ -275,4 +319,10 @@ h2.monospace {
 }
 .hidden {
   display: none;
+}
+.tmargin {
+  margin-top: 20px;
+}
+.bmargin {
+  margin-bottom: 10px;
 }

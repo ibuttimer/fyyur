@@ -1,74 +1,25 @@
 {% extends 'layouts/main.html' %}
 {% block title %}{{title}}{% endblock %}
 {% block content %}
+<p id="page-title" class="hidden">edit-show</p>
 <div class="form-wrapper col-sm-12">
   <div class="form-wrapper">
     <form method="post" class="form" action="{{submit_action}}">
       {{ form.hidden_tag() }}
       <h3 class="form-heading">List a new show</h3>
-      <div class="form-group">
-        <label for="artist_id">Artist</label>
-        {{ form.artist_id(class_ = 'form-control', autofocus = true) }}
-      </div>
-      <div class="form-group">
-        <div id="display_availability" class="hidden">
-          <div id="availability"></div>
-        </div>
-        <div id="no_availability" class="hidden">
-          <span class="available-slot">Not currently available</span>
-        </div>
-        <div id="availability_na" class="hidden">
-          <span class="available-slot">Availability information not available</span>
-        </div>
-      </div>
+
+      {% include 'forms/show_artist_snippet.html' %}
+
       <div class="form-group">
         <label for="venue_id">Venue</label>
         {{ form.venue_id(class_ = 'form-control', autofocus = true) }}
       </div>
-      <div class="form-group">
-        <div id="display_bookings" class="hidden">
-          <div id="bookings"></div>
-        </div>
-        <div id="no_bookings" class="hidden">
-          <span class="available-slot">No shows</span>
-        </div>
-        <div id="bookings_na" class="hidden">
-          <span class="available-slot">Booking information not available</span>
-        </div>
-      </div>
-      <div class="form-group row">
-        <div class="col-sm-6">
-          <label>Start Time</label>
-          {{ form.start_time(class_ = 'form-control dtpick', placeholder='YYYY-MM-DD HH:MM', autofocus = true) }}
-        </div>
-      </div>
-      <div class="form-group">
-        <label for="duration">Duration</label>
-        {% for subfield in form.duration %}
-        <div class="form-group radio-inline">
-            <tr>
-                <td>{{ subfield }}</td>
-                <td>{{ subfield.label }}</td>
-            </tr>
-        </div>
-        {% endfor %}
-        <div class="row">
-          <div class="col-sm-2 col-sm-offset-6">
-            {{ form.other_duration(class_ = 'form-control tpick', autofocus = true) }}
-          </div>
-        </div>
-      </div>
-      <div>
-        {% if form.errors %}
-          <ul class="errors">
-            {% for field_name, field_errors in form.errors|dictsort if field_errors %}
-              {% for error in field_errors %}
-                <li>{{ form[field_name].label }}: {{ error }}</li>
-              {% endfor %}
-            {% endfor %}
-          </ul>
-        {% endif %}
-      </div>
+      {% include 'forms/venue_availability_snippet.html' %}
+
+      {% include 'forms/start_duration_snippet.html' %}
+
+      {% include 'forms/form_errors_snippet.html' %}
+
       <div class="col-sm-12">
         <div class="col-sm-3 col-sm-offset-2">
           <a href="{{cancel_url}}" class="btn btn-default btn-lg btn-block" role="button" title="Cancel">Cancel</a>
@@ -80,160 +31,5 @@
     </form>
   </div>
 </div>
-<script>
-
-  const artistSelector = document.getElementById('artist_id');
-  const availabilityList = document.getElementById('availability');
-  const displayAvailability = document.getElementById('display_availability');
-  const noAvailability = document.getElementById('no_availability');
-  const availabilityNa = document.getElementById('availability_na');
-
-  const venueSelector = document.getElementById('venue_id');
-  const startTime = document.getElementById('start_time');
-  const bookingsList = document.getElementById('bookings');
-  const displayBookings = document.getElementById('display_bookings');
-  const noBookings = document.getElementById('no_bookings');
-  const bookingsNa = document.getElementById('bookings_na');
-  
-  
-  // get availability for selected artist
-  artistSelector.onchange = function(e) {
-      e.preventDefault();
-      getArtistAvailability(parseInt(e.srcElement.value), startTime.value);
-  }
-
-  window.onload = function() {
-    getArtistAvailability(artistSelector.value, startTime.value);
-    getVenueBookings(venueSelector.value, startTime.value);
-  };
-
-  function getArtistAvailability(artistId, queryDate) {
-
-    var match = matchDate(queryDate)
-
-    if ((artistId > 0) && (match != null)) {
-
-      removeChildren(availabilityList);
-
-      fetch(encodeURI("/artists/"+artistId+"/availability?query_date="+match), {
-          method: 'GET'
-      })
-      .then(response => response.json())
-      .then(jsonResponse => {
-          console.log(jsonResponse);
-
-          const availability = jsonResponse['availability'];
-          if (availability.length > 0) {
-            availability.forEach(entry => {
-              const span = document.createElement('span');
-              span.className = 'available-slot';
-
-              const text = document.createTextNode(' ' + entry + ' ');
-              span.appendChild(text);
-    
-              availabilityList.appendChild(span);
-            });
-            displayAvailability.className = "available-line";
-            noAvailability.className = "hidden";
-            availabilityNa.className = "hidden";
-          } else {
-            displayAvailability.className = "hidden";
-            noAvailability.className = "not-available-line";
-            availabilityNa.className = "hidden";
-          }
-        })
-        .catch(() => {
-          displayAvailability.className = "hidden";
-          noAvailability.className = "hidden";
-          availabilityNa.className = "not-available-line";
-        });
-    } else {
-      displayAvailability.className = "hidden";
-      noAvailability.className = "hidden";
-      availabilityNa.className = "not-available-line";
-    }
-  }
-
-  // get bookings for selected venue
-  startTime.onchange = function(e) {
-    e.preventDefault();
-
-    // when editing the datetime field manually, 2 events are produced, the
-    // standard html event and a jquery event
-    // TODO better way to distinguish between html & jquery events
-    if (typeof(e.isTrigger) == 'number') {
-      // jquery event, handle this as received for both key and mouse
-      getVenueBookings(parseInt(venueSelector.value), startTime.value);
-      getArtistAvailability(parseInt(artistSelector.value), startTime.value);
-    } 
-  }
-  venueSelector.onchange = function(e) {
-    e.preventDefault();
-    getVenueBookings(parseInt(e.srcElement.value), startTime.value);
-  }
-
-  function getVenueBookings(venueId, queryDate) {
-
-    var match = matchDate(queryDate)
-
-    if ((venueId > 0) && (match != null)) {
-
-      removeChildren(bookingsList);
-
-      fetch(encodeURI("/venues/"+venueId+"/bookings?query_date="+match), {
-          method: 'GET'
-      })
-      .then(response => response.json())
-      .then(jsonResponse => {
-          console.log(jsonResponse);
-
-          const bookings = jsonResponse['bookings'];
-          if (bookings.length > 0) {
-            bookings.forEach(entry => {
-              const span = document.createElement('span');
-              span.className = 'available-slot';
-
-              const text = document.createTextNode(' ' + entry + ' ');
-              span.appendChild(text);
-    
-              bookingsList.appendChild(span);
-            });
-
-            displayBookings.className = "available-line";
-            noBookings.className = "hidden";
-            bookingsNa.className = "hidden";
-          } else {
-            displayBookings.className = "hidden";
-            noBookings.className = "not-available-line";
-            bookingsNa.className = "hidden";
-          }
-        })
-        .catch(() => {
-          displayBookings.className = "hidden";
-          noBookings.className = "hidden";
-          bookingsNa.className = "not-available-line";
-        });
-    } else {
-      displayBookings.className = "hidden";
-      noBookings.className = "hidden";
-      bookingsNa.className = "not-available-line";
-    }
-  }
-
-  function matchDate(queryDate) {
-    var matchDate = null;
-    var match = queryDate.match(/(\d{4}-\d{2}-\d{2})\s+(\d{2}:\d{2})/);
-    if (match) {
-      matchDate = match[1] + " " + match[2]
-    }
-    return matchDate;
-  }
-
-  function removeChildren(element) {
-    while (element.lastElementChild) {
-      element.removeChild(element.lastElementChild);
-    }
-  }
-</script>
 
 {% endblock %}

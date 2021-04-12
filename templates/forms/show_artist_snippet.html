@@ -1,0 +1,17 @@
+<div class="form-group">
+  <label for="artist_id">Artist</label>
+  {{ form.artist_id(class_ = 'form-control', autofocus = true) }}
+</div>
+<div class="form-group">
+  <div id="display_availability" class="hidden">
+    <div id="availability">
+      {# availability is added to this element #}
+    </div>
+  </div>
+  <div id="no_availability" class="hidden">
+    <span class="available-slot">Not currently available</span>
+  </div>
+  <div id="availability_na" class="hidden">
+    <span class="available-slot">Availability information not available</span>
+  </div>
+</div>

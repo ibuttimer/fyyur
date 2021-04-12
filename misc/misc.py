@@ -1,4 +1,3 @@
-from datetime import datetime
 from http import HTTPStatus
 from typing import Union
 
@@ -34,11 +33,6 @@ def label_from_valuelabel_list(valuelabel, value):
             label = vl[1]
             break
     return label
-
-
-def current_datetime():
-    """ Current datetime to minute accuracy """
-    return datetime.today().replace(second=0, microsecond=0)
 
 
 def get_genre_list(names: list) -> Union[Model, list[str]]:

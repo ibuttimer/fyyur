@@ -272,7 +272,8 @@ Navigate to project homepage [http://127.0.0.1:5000/](http://127.0.0.1:5000/) or
   
   * *Advanced*
 
-    Available from the artists/venues/shows pages by clicking on `Advanced Search`. Allows searching by any combination of name/partial name, city/partial city and state.
+    Available from the artists/venues/shows pages by clicking on `Advanced Search`. 
+    Allows searching by any combination of name/partial name, city/partial city, state and genre.
 
 * Recently listed artists and venues are available on the homepage.
 

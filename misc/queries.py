@@ -2,18 +2,21 @@
 # Imports
 # ---------------------------------------------------------------------------- #
 from http import HTTPStatus
-from typing import Union, AnyStr
+from typing import Union
 
-from flask import request, abort
-from flask_sqlalchemy import Model
+from flask import abort
 from flask_wtf import FlaskForm
-
 # ---------------------------------------------------------------------------- #
 # Models.
 # ---------------------------------------------------------------------------- #
+from sqlalchemy import Column
+
 from config import USE_ORM
-from .misc import print_exc_info, str_or_none
-from .queries_orm import AND_CONJUNC, SearchParams, ModelOrStr
+from forms import NO_STATE_SELECTED
+from models import Entity, get_entity, VENUE_TABLE, ARTIST_TABLE
+from .common import SP_NAME, SP_CITY, SP_STATE, SP_GENRES, SearchParams
+from .misc import print_exc_info, str_or_none, check_no_list_in_list
+from .queries_orm import AND_CONJUNC
 
 ORM = USE_ORM
 ENGINE = not ORM
@@ -23,11 +26,11 @@ if ORM:
         entity_search_all_orm as entity_search_all,
         entity_search_like_orm as entity_search_like,
         entity_search_state_orm as entity_search_state,
+        entity_search_genres_orm as entity_search_genres,
         entity_search_clauses_orm as entity_search_clauses,
+        conjunction_op_orm as conjunction_op,
         entity_search_execute_orm as entity_search_execute,
         entity_shows_count_query_orm as entity_shows_count_query,
-        venues_search_class_field_orm as venues_search_class_field,
-        artists_search_class_field_orm as artists_search_class_field,
         shows_by_orm as shows_by,
         shows_by_artist_fields_orm as shows_by_artist_fields,
         shows_by_venue_fields_orm as shows_by_venue_fields,
@@ -38,11 +41,11 @@ else:
         entity_search_all_engine as entity_search_all,
         entity_search_like_engine as entity_search_like,
         entity_search_state_engine as entity_search_state,
+        entity_search_genres_engine as entity_search_genres,
         entity_search_clauses_engine as entity_search_clauses,
+        conjunction_op_engine as conjunction_op,
         entity_search_execute_engine as entity_search_execute,
         entity_shows_count_query_engine as entity_shows_count_query,
-        venues_search_class_field_engine as venues_search_class_field,
-        artists_search_class_field_engine as artists_search_class_field,
         shows_by_engine as shows_by,
         shows_by_artist_fields_engine as shows_by_artist_fields,
         shows_by_venue_fields_engine as shows_by_venue_fields,
@@ -55,7 +58,7 @@ SEARCH_ADVANCED = 'advanced'
 SEARCH_ALL = 'all'
 
 
-def basic_search_terms(search_term: str) -> tuple:
+def ncs_search_terms(search_term: str) -> tuple:
     """
     Extract basic search items
     :param search_term: search term to extract info from
@@ -81,35 +84,40 @@ def basic_search_terms(search_term: str) -> tuple:
     return str_or_none(name), str_or_none(city), str_or_none(state)
 
 
-def advances_search_terms(form: FlaskForm) -> tuple:
+def ncsg_search_terms(search: SearchParams) -> tuple:
     """
     Extract advanced search items
-    :param form: form to extract info from
-    :return: tuple of (name, city, state, mode)
+    :param search: search parameters
+    :return: tuple of (name, city, state, genres, mode)
     """
     have_info = False
     name = None
     city = None
     state = None
+    genres = []
 
-    if form.name.data is not None and len(form.name.data) > 0:
-        name = str_or_none(form.name.data)
+    if search.name is not None and len(search.name) > 0:
+        name = str_or_none(search.name)
         have_info = name is not None
 
-    if form.city.data is not None and len(form.city.data) > 0:
-        city = str_or_none(form.city.data)
+    if search.city is not None and len(search.city) > 0:
+        city = str_or_none(search.city)
         have_info = city is not None
 
-    if form.state.data != 'none' and len(form.state.data) > 0:
-        state = str_or_none(form.state.data)
+    if search.state is not None and search.state != NO_STATE_SELECTED and len(search.state) > 0:
+        state = str_or_none(search.state)
         have_info = state is not None
+
+    if search.genres is not None and len(search.genres) > 0:
+        genres = search.genres
+        have_info = True
 
     if have_info:
         mode = SEARCH_ADVANCED
     else:
         mode = SEARCH_BASIC  # no info, switch to basic mode
 
-    return name, city, state, mode
+    return name, city, state, genres, mode
 
 
 def search_clauses(search: SearchParams) -> SearchParams:
@@ -122,26 +130,36 @@ def search_clauses(search: SearchParams) -> SearchParams:
     clauses: list[list] = []
     record_term = True
 
-    for entity_class in search.entity_classes:
+    for entity in search.entities:
         sub_clauses = []
 
         if search.name is not None:
             sub_clauses.append(
-                entity_search_like(entity_class, "name", search.name))
+                entity_search_like(entity, SP_NAME, search.name))
             if record_term:
                 search_terms.append(f'name: {search.name}')
+                search.searching_on[SP_NAME] = True
 
         if search.city is not None:
             sub_clauses.append(
-                entity_search_like(entity_class, "city", search.city))
+                entity_search_like(entity, SP_CITY, search.city))
             if record_term:
                 search_terms.append(f'city: {search.city}')
+                search.searching_on[SP_CITY] = True
 
-        if search.state is not None and search.state != 'none':
+        if search.state is not None and search.state != NO_STATE_SELECTED:
             sub_clauses.append(
-                entity_search_state(entity_class, search.state))
+                entity_search_state(entity, search.state))
             if record_term:
                 search_terms.append(f'state: {search.state}')
+                search.searching_on[SP_STATE] = True
+
+        if search.genres is not None and len(search.genres) > 0:
+            sub_clauses.append(
+                entity_search_genres(entity, search.genres, search))
+            if record_term:
+                search_terms.append(f'genres: {" or ".join(search.genres)}')
+                search.searching_on[SP_GENRES] = True
 
         if len(sub_clauses) == 0:
             break   # no terms
@@ -150,7 +168,7 @@ def search_clauses(search: SearchParams) -> SearchParams:
 
     search.search_terms = search_terms
     search.clauses = clauses
-    if len(search.entity_classes) == 1:
+    if len(search.entities) == 1:
         # if only 1 set of clauses, move it to level 0
         if len(clauses) > 0:
             search.clauses = clauses[0]
@@ -161,55 +179,56 @@ def search_clauses(search: SearchParams) -> SearchParams:
     return search
 
 
-def name_city_state_search_clauses(mode: str, form: FlaskForm, search_term: str, search: SearchParams) -> SearchParams:
+def ncsg_search_clauses(mode: str, search: SearchParams) -> SearchParams:
     """
-    Determine search clauses
+    Determine clauses for name, city, state, genre search
     :param mode:         one of 'basic', 'advanced' or 'all'
-    :param form:         form data for advanced search
-    :param search_term:  search_term for basic search
-    :param search:       search parameters for advanced search
+    :param search:       search parameters for search
     :return: list of search terms and list of clauses
     """
     name = None
     city = None
     state = None
+    genres = None
 
     if mode == SEARCH_ADVANCED:
-        # advanced search based on name/city/state
-        name, city, state, mode = advances_search_terms(form)
+        # advanced search based on name/city/state/genre
+        name, city, state, genres, mode = ncsg_search_terms(search)
 
     if mode == SEARCH_BASIC:
         # basic name search
-        name, city, state = basic_search_terms(search_term)
+        name, city, state = ncs_search_terms(search.simple_search_term)
 
     search.name = name
     search.city = city
     search.state = state
+    search.genres = genres
 
     return search_clauses(search)
 
 
-def name_city_state_search(mode: str, form: FlaskForm, entity_class: ModelOrStr, show_field: str):
+def ncsg_search(mode: str, form: FlaskForm, entity: Entity, simple_search_term: str = None) -> dict:
     """
     Perform a search
-    :param mode:         one of 'basic', 'advanced' or 'all'
-    :param form:         form data
-    :param entity_class: class of entity or name of table to search
-    :param show_field:   show field linked to entity id
+    :param mode:        one of 'basic', 'advanced' or 'all'
+    :param form:        form data
+    :param entity:      entity to search for
+    :param simple_search_term:  search term for basic search
     :return dict with "count", "data", "search_term", "mode"
     """
     if mode not in [SEARCH_BASIC, SEARCH_ADVANCED, SEARCH_ALL]:
         abort(HTTPStatus.BAD_REQUEST.value)
 
-    # basic 'all' mode query
-    query = entity_search_all(entity_class)
-
     # advanced search on only one class, joining with 'and'
-    search = SearchParams(entity_class, conjunction=AND_CONJUNC)
-    name_city_state_search_clauses(mode, form, request.form.get('search_term', ''), search)
+    search = SearchParams(entity, conjunction=AND_CONJUNC).load_form(form)
+    search.simple_search_term = simple_search_term
+    ncsg_search_clauses(mode, search)
+
+    # basic 'all' mode query
+    query = entity_search_all(entity, search)
 
     # append query constraints
-    query = entity_search_clauses(query, search)
+    query = entity_search_clauses(query, search, entity_search_expression)
 
     entities = []
     try:
@@ -218,7 +237,7 @@ def name_city_state_search(mode: str, form: FlaskForm, entity_class: ModelOrStr,
         print_exc_info()
         abort(HTTPStatus.INTERNAL_SERVER_ERROR.value)
 
-    data = entity_shows_count(entities, show_field)
+    data = entity_shows_count(entities, entity)
 
     return {
         "count": len(data),
@@ -228,15 +247,15 @@ def name_city_state_search(mode: str, form: FlaskForm, entity_class: ModelOrStr,
     }
 
 
-def entity_shows_count(entities: list, show_field: str):
+def entity_shows_count(entities: list, entity: Entity):
     """
     Perform a shows count search
-    :param entities:   list of entities whose shows to search for
-    :param show_field: show field linked to entity id
+    :param entities:    list of entities whose shows to search for
+    :param entity:      entity to search for
     """
     data = []
     try:
-        data = entity_shows_count_query(entities, show_field)
+        data = entity_shows_count_query(entities, entity)
     except:
         print_exc_info()
         abort(HTTPStatus.INTERNAL_SERVER_ERROR.value)
@@ -244,37 +263,39 @@ def entity_shows_count(entities: list, show_field: str):
     return data
 
 
-def venues_search(mode: str, form: FlaskForm):
+def venues_search(mode: str, form: FlaskForm, simple_search_term: str = None) -> dict:
     """
     Perform a search on venues
     :param mode:   one of 'basic', 'advanced' or 'all'
     :param form:   form data
+    :param simple_search_term:  search term for basic search
     """
-    return name_city_state_search(mode, form, *venues_search_class_field())
+    return ncsg_search(mode, form, get_entity(VENUE_TABLE), simple_search_term=simple_search_term)
 
 
-def artists_search(mode: str, form: FlaskForm):
+def artists_search(mode: str, form: FlaskForm, simple_search_term: str = None) -> dict:
     """
     Perform a search on artists
     :param mode:   one of 'basic', 'advanced' or 'all'
     :param form:   form data
+    :param simple_search_term:  search term for basic search
     """
-    return name_city_state_search(mode, form, *artists_search_class_field())
+    return ncsg_search(mode, form, get_entity(ARTIST_TABLE), simple_search_term=simple_search_term)
 
 
-def _shows_by(entity_id, entity_class: Union[Model, AnyStr], link_field, show_field, keys, key_prefix: str, *criterion):
+def _shows_by(entity_id: int, entity: Entity, link_field: Column, keys: dict, key_prefix: str, *criterion):
     """
     Select shows for the specified entity
     :param entity_id:    id of entity whose shows to search for
-    :param entity_class: class of entity or name of table to search
+    :param entity:       entity to search for
     :param link_field:   show field linking show and entity
-    :param show_field:   info field in show
     :param keys:         keys to access result fields
+    :param key_prefix:   prefix to combine with keys to generate result fields
     :param criterion:    filtering criterion
     """
     shows = []
     try:
-        shows = shows_by(entity_id, entity_class, link_field, show_field, *criterion)
+        shows = shows_by(entity_id, entity, link_field, *criterion)
     except:
         print_exc_info()
         abort(HTTPStatus.INTERNAL_SERVER_ERROR.value)
@@ -322,3 +343,46 @@ def get_genres_options():
     options = [(g[0], g[0]) for g in genres if g[0] != 'Other']
     options.append(('Other', 'Other'))
     return options, [g[0] for g in options]
+
+
+def entity_search_expression(terms: list, conjunction: Union[str, list[str]]):
+    """
+    Join terms
+    :param terms:       terms to join; a list of terms, or a list of lists of terms
+    :param conjunction: conjunction to join terms; 'and' or 'or
+    """
+    expression = None
+
+    if terms is not None and len(terms) > 0:
+        if not isinstance(conjunction, list):
+            conjunction = [conjunction]
+
+        if len(conjunction) == 1:
+            # expecting a list with 1 or more clauses
+            check_no_list_in_list(terms)
+
+            if len(terms) == 1:
+                # single clause no conjunction necessary
+                expression = terms[0]
+            elif len(terms) > 1:
+                # join clauses using conjunction
+                expression = conjunction_op(conjunction[0], *terms)
+            else:
+                raise ValueError("Found empty list when expecting at least one entry")
+
+        elif len(conjunction) == 2:
+            # expecting a list of lists with 1 or more clauses
+            if not isinstance(terms, list):
+                raise ValueError("Expecting list of lists of clauses")
+            else:
+                for sub_term in terms:
+                    check_no_list_in_list(sub_term)
+
+            # create level 1 terms with level 1 conjunction
+            level1 = [conjunction_op(conjunction[1], *t) for t in terms]
+            # join level 1 terms with level 0 conjunction
+            expression = conjunction_op(conjunction[0], *level1)
+        else:
+            raise NotImplemented("Expressions beyond 2 levels not supported")
+
+    return expression

@@ -10,16 +10,18 @@ from flask.helpers import make_response
 from flask_sqlalchemy import Model
 from flask_wtf import FlaskForm
 
-from config import USE_ORM
 from forms import (populate_model, populate_model_property, set_singleselect_field_options, ShowForm,
                    AVAILABILITY_TIME_FMT, MIDNIGHT)
 from forms.forms import OTHER_DURATION, NCSSearchForm
 from misc import label_from_valuelabel_list, SEARCH_BASIC, SEARCH_ALL, SEARCH_ADVANCED
+from util import current_datetime
 from .artist_controller import availability_by_artist
 from .controllers_misc import (model_property_list, IGNORE_ID_GENRES, FactoryObj, FILTER_ALL, FILTER_PREVIOUS,
-                               FILTER_UPCOMING
+                               FILTER_UPCOMING, set_genre_field_options
                                )
 from .venue_controller import bookings_by_venue
+from config import USE_ORM
+from .venue_engine import str_to_datetime
 
 ORM = USE_ORM
 ENGINE = not ORM
@@ -31,7 +33,7 @@ if ORM:
         shows_orm as shows_impl,
         extract_unique_properties_orm as extract_unique_properties,
         dow_availability_orm as dow_availability,
-        create_show_orm as create_show,
+        create_show_orm as create_show_impl,
         artists_and_venues_orm as artists_and_venues,
     )
 else:
@@ -40,7 +42,7 @@ else:
         shows_engine as shows_impl,
         extract_unique_properties_engine as extract_unique_properties,
         dow_availability_engine as dow_availability,
-        create_show_engine as create_show,
+        create_show_engine as create_show_impl,
         artists_and_venues_engine as artists_and_venues,
     )
 
@@ -117,11 +119,17 @@ def search_shows_advanced():
     """
     Perform advanced search on shows
     """
+    is_post = (request.method == 'POST')
     page = get_request_page()
 
     form = NCSSearchForm()
 
-    if request.method == 'POST':
+    genres = form.genres.data if is_post else list()
+
+    # set choices & validators based on possible options
+    set_genre_field_options(form.genres, genres, required=False)
+
+    if is_post:
         results = shows_impl(page, FILTER_ALL, SEARCH_ADVANCED, form, request.form.get('search_term', ''))
     else:
         pagination = request.args.get('pagination', 'n')
@@ -213,14 +221,17 @@ def verify_show(show: Union[Model, dict]):
 NO_SELECTION = -1
 
 
-def create_show_submission():
+def create_show():
     """
     List a show
 
     Request query parameters:
     artist: id of artist selected for show
     venue:  id of venue selected for show
+    A GET returns an empty form
+    A POST submits the info
     """
+    is_post = (request.method == 'POST')
     artist_id = int(request.args.get('artist', str(NO_SELECTION)))
     venue_id = int(request.args.get('venue', str(NO_SELECTION)))
 
@@ -232,12 +243,15 @@ def create_show_submission():
     venue_choices.insert(0, (NO_SELECTION, "Select venue"))
 
     form = ShowForm()
-    if request.method == 'POST':
+    if is_post:
         artists = form.artist_id.data
         venues = form.venue_id.data
+        start_time = form.start_time.data
     else:
         artists = list()
         venues = list()
+        start_time = request.args.get('starttime', None)
+        start_time = current_datetime() if start_time is None else str_to_datetime(start_time)
 
     # set choices & validators based on possible options
     set_singleselect_field_options(form.artist_id, artist_choices,
@@ -248,6 +262,8 @@ def create_show_submission():
         form.artist_id.data = artist_id
     if venue_id != NO_SELECTION:
         form.venue_id.data = venue_id
+    if start_time is not None:
+        form.start_time.data = start_time
 
     response = None
     status_code = HTTPStatus.OK.value  # status code for GET
@@ -278,7 +294,7 @@ def create_show_submission():
                     flash(f'Artist availability conflict. Artist is not available.')
 
             else:
-                success = create_show(show)
+                success = create_show_impl(show)
 
                 if success:
                     # on successful db insert, flash success
@@ -294,7 +310,7 @@ def create_show_submission():
             render_template('forms/edit_show.html',
                             form=form,
                             title='Create Show',
-                            submit_action=url_for('create_show_submission'),
+                            submit_action=url_for('create_show'),
                             cancel_url=url_for('index'),
                             submit_text='Create',
                             submit_title='Create show'

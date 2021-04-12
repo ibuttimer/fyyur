@@ -4,13 +4,13 @@ from enum import Enum
 from http import HTTPStatus
 from typing import Callable, Union, Any, List, AnyStr
 
-from flask import abort, redirect
-from flask.helpers import flash, url_for
+from flask import abort, redirect, flash, url_for
 from flask_sqlalchemy import Model
+from flask_wtf import FlaskForm
 from wtforms import SelectMultipleField
 
-from forms import AVAILABILITY_FROM_DATE_FMT, set_multiselect_field_options
-from misc import print_exc_info
+from forms import AVAILABILITY_FROM_DATE_FMT, set_multiselect_field_options, populate_model, populate_model_property
+from misc import print_exc_info, get_genre_list
 from models import model_property_list as models_model_property_list
 from misc.queries import get_genres_options
 from config import USE_ORM
@@ -35,14 +35,15 @@ IGNORE_ID = ['id']
 IGNORE_ID_GENRES = ["id", "genres"]
 
 
-def set_genre_field_options(field: SelectMultipleField, data):
+def set_genre_field_options(field: SelectMultipleField, data: list, required: bool = True):
     """
     Set a genres field options
     :param field:   form field
     :param data:    value(s) to set
+    :param required:   selection required flag
     """
     choices, values = get_genres_options()
-    set_multiselect_field_options(field, choices, values, data)
+    set_multiselect_field_options(field, choices, values, data, required=required)
 
 
 def model_property_list(model: Union[Model, dict], ignore=None) -> list:
@@ -139,15 +140,15 @@ def delete_result(success, name, entity_type):
     return {'success': success, 'redirect': url_for('index')}
 
 
-def exists_or_404(entity_class: Union[Model, AnyStr], entity_id: int):
+def exists_or_404(entity: Union[Model, AnyStr], entity_id: int):
     """
     Check if entity exists, or abort with 404
-    :param entity_class:   class of entity or name of table to search
-    :param entity_id:      id of entity to check
+    :param entity:      entity model or name of table to search
+    :param entity_id:   id of entity to check
     """
     exists = False
     try:
-        exists = exists_impl(entity_class, entity_id)
+        exists = exists_impl(entity, entity_id)
     except:
         print_exc_info()
         abort(HTTPStatus.INTERNAL_SERVER_ERROR.value)
@@ -166,3 +167,14 @@ FILTER_PREVIOUS = 'previous'
 FILTER_UPCOMING = 'upcoming'
 
 
+def populate_genred_model(model: Union[Model, dict], form: FlaskForm, properties: list):
+    """
+    Populate a model with genres from a form
+    :param model:       entity to populate
+    :param form:        form to populate from
+    :param properties:  list of properties to populate
+    """
+    populate_model(model, form, properties)
+    genres = get_genre_list(form["genres"].data)
+    populate_model_property(model, "genres", genres)
+    return model

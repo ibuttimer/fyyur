@@ -1,15 +1,16 @@
 {% extends 'layouts/main.html' %}
 {% block title %}{{title}}{% endblock %}
 {% block content %}
-{% include 'pages/advanced_search.html' %}
+{% include 'pages/advanced_search_snippet.html' %}
 
+<p id="page-title" class="hidden">venues</p>
 {% if (results.mode == 'city_state') %}
 	<div class="col-sm-12">
 		{% for area in results.areas %}
 			<h3>{{area.city}}, {{area.state}}</h3>
 			<ul class="items">
 				{% for venue in area.venues %}
-					{% include 'pages/venue_entry.html' %}
+					{% include 'pages/venue_entry_snippet.html' %}
 				{% endfor %}
 			</ul>
 		{% endfor %}
@@ -18,44 +19,9 @@
 	<div class="col-sm-12">
 		<ul class="items">
 			{% for venue in results.data %}
-				{% include 'pages/venue_entry.html' %}
+				{% include 'pages/venue_entry_snippet.html' %}
 			{% endfor %}
 		</ul>
 	</div>
 {% endif %}
-
-
-
-<!--<div class="col-sm-12">-->
-<!--{% for area in areas %}-->
-<!--	<h3>{{ area.city }}, {{ area.state }}</h3>-->
-<!--	<ul class="items">-->
-<!--		{% for venue in area.venues %}-->
-
-<!--		{% include 'pages/venue_entry.html' %}-->
-
-
-<!--&lt;!&ndash;		<li>&ndash;&gt;-->
-<!--&lt;!&ndash;			<a href="/venues/{{venue.id}}" &ndash;&gt;-->
-<!--&lt;!&ndash;				{% if venue.num_upcoming_shows > 0 %}&ndash;&gt;-->
-<!--&lt;!&ndash;					title="{{venue.name}}, {{venue.num_upcoming_shows}} upcoming shows"&ndash;&gt;-->
-<!--&lt;!&ndash;				{% else %}&ndash;&gt;-->
-<!--&lt;!&ndash;					title="{{venue.name}}, no upcoming shows"&ndash;&gt;-->
-<!--&lt;!&ndash;				{% endif %}&ndash;&gt;-->
-<!--&lt;!&ndash;				>&ndash;&gt;-->
-<!--&lt;!&ndash;				<i class="fas fa-building" aria-hidden="true"></i>&ndash;&gt;-->
-<!--&lt;!&ndash;				<div class="item">&ndash;&gt;-->
-<!--&lt;!&ndash;					<h5>{{venue.name}}</h5>&ndash;&gt;-->
-<!--&lt;!&ndash;				</div>&ndash;&gt;-->
-<!--&lt;!&ndash;				&nbsp;&ndash;&gt;-->
-<!--&lt;!&ndash;				<i class="fa fa-music" aria-hidden="true"></i>&ndash;&gt;-->
-<!--&lt;!&ndash;				<div class="item">&ndash;&gt;-->
-<!--&lt;!&ndash;					<h5>{{venue.num_upcoming_shows}}</h5>&ndash;&gt;-->
-<!--&lt;!&ndash;				</div>&ndash;&gt;-->
-<!--&lt;!&ndash;			</a>&ndash;&gt;-->
-<!--&lt;!&ndash;		</li>&ndash;&gt;-->
-<!--		{% endfor %}-->
-<!--	</ul>-->
-<!--{% endfor %}-->
-<!--</div>-->
 {% endblock %}

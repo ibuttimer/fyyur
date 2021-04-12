@@ -8,18 +8,21 @@ from typing import Union
 from flask import abort
 from flask_wtf import FlaskForm
 
-from .controllers_misc import add_show_summary, model_property_list, IGNORE_ID_GENRES, IGNORE_ID, FactoryObj
-from misc import get_music_entity_engine, genre_changes_engine, exec_transaction_engine
-from .venue_orm import BOOKING_BY_VENUE_KEYS
-from misc.engine import execute, execute_transaction
-from forms import (populate_genred_model, APP_DATETIME_FMT, APP_DATE_FMT, APP_TIME_FMT)
+from forms import (APP_DATETIME_FMT, APP_DATE_FMT, APP_TIME_FMT)
 from misc import EntityResult, print_exc_info
-from models import (VENUE_TABLE, SHOWS_TABLE, VENUE_GENRES_TABLE,
-                    new_model_dict, dict_disjoint, equal_dict, ARTIST_TABLE)
+from misc import get_music_entity_engine, genre_changes_engine, exec_transaction_engine
+from misc.engine import execute, execute_transaction
 from misc.queries import entity_shows_count, shows_by_venue
+from models import (VENUE_TABLE, SHOWS_TABLE, VENUE_GENRES_TABLE,
+                    dict_disjoint, equal_dict, ARTIST_TABLE, get_entity)
+from .controllers_misc import add_show_summary, model_property_list, IGNORE_ID_GENRES, IGNORE_ID, FactoryObj, \
+    populate_genred_model
+from .venue_orm import BOOKING_BY_VENUE_KEYS
 
 # keys to extract data for db results
 BOOKING_BY_VENUE_DICT = {p: p for p in BOOKING_BY_VENUE_KEYS}
+
+_VENUE_ = get_entity(VENUE_TABLE)
 
 
 def venue_factory_engine(obj_type: FactoryObj) -> Union[dict, str, None]:
@@ -30,9 +33,9 @@ def venue_factory_engine(obj_type: FactoryObj) -> Union[dict, str, None]:
     """
     result = None
     if obj_type == FactoryObj.OBJECT:
-        result = new_model_dict(VENUE_TABLE)
+        result = _VENUE_.model_dict()
     elif obj_type == FactoryObj.CLASS:
-        result = VENUE_TABLE
+        result = _VENUE_.eng_table
     return result
 
 
@@ -51,7 +54,7 @@ def venues_engine():
             venues.append({
                 "state": state,
                 "city": city,
-                "venues": entity_shows_count(venue_list, 'venue_id')
+                "venues": entity_shows_count(venue_list, _VENUE_)
             })
     except:
         print_exc_info()
@@ -65,8 +68,7 @@ def get_venue_engine(venue_id: int):
     Get a venue
     :param venue_id:   id of venue
     """
-    venue = get_music_entity_engine(venue_id, VENUE_TABLE, VENUE_GENRES_TABLE,
-                                    'venue_id')
+    venue = get_music_entity_engine(venue_id, _VENUE_)
     return add_show_summary(venue_id, venue, shows_by_venue)
 
 
@@ -89,7 +91,7 @@ def update_venue_engine(venue: dict, form: FlaskForm) -> (Union[bool, None], str
     stmts = []
     venue_id = venue["id"]
 
-    updated_venue = populate_venue_engine(new_model_dict(VENUE_TABLE), form)
+    updated_venue = populate_venue_engine(_VENUE_.model_dict(), form)
     if not equal_dict(venue, updated_venue, IGNORE_ID):
         # change has occurred update venue
         to_set = [f'{k}=\'{v}\'' for k, v in updated_venue.items()
@@ -100,8 +102,7 @@ def update_venue_engine(venue: dict, form: FlaskForm) -> (Union[bool, None], str
 
         # update genre link table
         if updated_venue["genres"] != venue["genres"]:
-            for stmt in genre_changes_engine(venue["genres"], updated_venue["genres"],
-                                             venue_id, VENUE_GENRES_TABLE, 'venue_id'):
+            for stmt in genre_changes_engine(venue["genres"], updated_venue["genres"], venue_id, _VENUE_):
                 stmts.append(stmt)
 
     return exec_transaction_engine(stmts, updated_venue["name"])
@@ -112,7 +113,7 @@ def venue_to_edit_engine(venue_id: int):
     Edit a venue
     :param venue_id: id of the venue to edit
     """
-    venue = get_music_entity_engine(venue_id, VENUE_TABLE, VENUE_GENRES_TABLE, 'venue_id')
+    venue = get_music_entity_engine(venue_id, _VENUE_)
     as_type = EntityResult.DICT  # availability as a dict
     return venue, as_type
 
@@ -231,8 +232,7 @@ def create_venue_engine(venue: dict):
 
                 stmts = []
                 # add genres
-                for stmt in genre_changes_engine([], venue["genres"],
-                                                 venue_id, VENUE_GENRES_TABLE, 'venue_id'):
+                for stmt in genre_changes_engine([], venue["genres"], venue_id, _VENUE_):
                     stmts.append(stmt)
 
                 execute_transaction(stmts)
@@ -245,6 +245,10 @@ def create_venue_engine(venue: dict):
 
 def datetime_to_str(date_time: datetime) -> str:
     return date_time.strftime(APP_DATETIME_FMT)
+
+
+def str_to_datetime(date_time: datetime) -> datetime:
+    return datetime.strptime(date_time, APP_DATETIME_FMT)
 
 
 def date_to_str(date_time: datetime) -> str:
